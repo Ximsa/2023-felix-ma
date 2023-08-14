@@ -1,8 +1,6 @@
 from matplotlib import pyplot as plt
 
-
-
-fig = plt.figure(figsize=(10,10))
+fig = plt.figure(figsize=(6,6))
 fig.set_facecolor('w')
 plt.scatter([1,2,3], [4,5,3])
 
