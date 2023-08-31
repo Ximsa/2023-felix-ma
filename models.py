@@ -17,7 +17,13 @@ class GPN_Encoder(torch.nn.Module):
         x = F.dropout(x, self.dropout, training=self.training)
         x = self.conv2(x, edge_index)
         return x
-        x = F.relu(x)
-        x = F.dropout(x, self.dropout, training=self.training)
-        x = self.conv3(x, edge_index)
-        return x
+
+    def intraclass_loss(prototypes, embeddings):
+        prototype_distances = torch.cdist(embeddings, prototypes)
+        
+    
+    def loss(self, dataset, mask):
+        embeddings = self.forward(dataset.x)
+        prototypes = torch.stack([embeddings])
+        return intraclass_loss(prototypes, embeddings) + alpha * (euclidian_loss() + cosine_loss())
+        
