@@ -15,39 +15,31 @@ from toolz.dicttoolz import merge
 import matplotlib.pyplot as plt
 from models import GPN_Encoder, GCN
 
-def get_distances(embeddings, prototypes):
-    return -torch.cdist(embeddings, prototypes)
+def accuracy(predictions, true_labels, mask):
+    """Calculates accuracy, macro-f1 and the confusion matrix
 
-def get_prototypes(embeddings, labels, num_labels):
-    # position unknown prototypes to the center to "force" labels away from center
-    prototypes = torch.stack([
-        (torch.mean(embeddings[labels==label], dim=0) if len(embeddings[labels==label]) > 0 else torch.zeros(embeddings.size(1))) for label in range(num_labels)])
-    return prototypes
-
-def accuracy(embeddings, true_labels, mask):
-    prototypes = get_prototypes(embeddings[mask], true_labels[mask], len(true_labels.unique()))
-    distances = get_distances(embeddings[mask], prototypes)
-    predictions = distances.argmax(dim=1)
-    return {"accuracy": accuracy_score(predictions, true_labels[mask]),
-            "macro-f1": f1_score(true_labels[mask], predictions, average='macro'),
-            "confusion": confusion_matrix(true_labels[mask], predictions),}
+    :param tensor predictions: Predicted labels
+    :param tensor true_labels: Ground truth
+    :param tensor mask: Mask for instance selection
+    :returns: dictionary of accuracy scores (acc, macro-f1, and confusion matrix)
+    """
+    return {"accuracy": accuracy_score(predictions[mask], true_labels[mask]),
+            "macro-f1": f1_score(true_labels[mask], predictions[mask], average='macro'),
+            "confusion": confusion_matrix(true_labels[mask], predictions[mask]),}
 
 def train(n, optimizer, model, dataset):
     num_labels = len(dataset.y.unique())
     model.train()
     for i in range(n):
         optimizer.zero_grad()
-        embeddings = model(dataset.x, dataset.edge_index)
-        loss = model.loss(embeddings[dataset.train_mask],
-                          dataset.y[dataset.train_mask],
-                          num_labels)
-        loss.backward()#retain_graph=True)
+        probabilities = model(dataset.x, dataset.edge_index)
+        loss = model.loss(dataset, probabilities)
+        loss.backward()
         optimizer.step()
-    prototypes = get_prototypes(embeddings[dataset.train_mask], dataset.y[dataset.train_mask], num_labels)
-    distances = get_distances(embeddings[dataset.train_mask], prototypes)
-    predictions = distances.argmax(dim=1)
-    return {"train": accuracy(embeddings, dataset.y, dataset.train_mask),
-            "test": accuracy(embeddings, dataset.y, dataset.val_mask)}
+    probabilities = model(dataset.x, dataset.edge_index)
+    predictions = torch.argmax(probabilities, dim=1)
+    return {"train": accuracy(predictions, dataset.y, dataset.train_mask),
+            "test": accuracy(predictions, dataset.y, dataset.val_mask)}
 
 def select_vertices(n, model, dataset):
     # get indices which we can sample from
@@ -72,18 +64,29 @@ def run(model, dataset, runs=10, budget=100, learning_rate=0.001):
     return [run_once(model, dataset, budget, learning_rate) for i in range(runs)]
 
 dataset = datasets.get_dataset('Cora')
-num_classes = len(dataset.y.unique()) # todo: put into dataset
+
 # run prototypical
-model = partial(GPN_Encoder,dataset.num_node_features, embedding_dim=16, dropout=0.5)
-result_gpn = run(model=model, dataset=dataset, runs=5,budget=100)
+model = partial(GPN_Encoder,
+                num_node_features=dataset.num_node_features,
+                embedding_dim=16,
+                num_classes=dataset.num_classes,
+                dropout=0.5)
+result_gpn = run(model=model, dataset=dataset, runs=1,budget=100)
 
 #run conventional gcn
-model = partial(GCN, in_channels=dataset.num_node_features, hidden_channels=128, num_layers=2, out_channels=num_classes, dropout=0.5)
-result_gcn = run(model=model, dataset=dataset, runs=5,budget=100)
+model = partial(GCN,
+                in_channels=dataset.num_node_features,
+                hidden_channels=128,
+                num_layers=2,
+                out_channels=dataset.num_classes,
+                dropout=0.5)
+result_gcn = run(model=model, dataset=dataset, runs=5, budget=100)
 
 
-embeddings = result_gpn[0]['model'](dataset.x, dataset.edge_index)
+#embeddings = result_gcn[0]['model'](dataset.x, dataset.edge_index)
+model = result_gpn[0]['model']
 modified_dataset = result_gpn[0]['dataset']
-prototypes = get_prototypes(embeddings[modified_dataset.train_mask], modified_dataset.y[modified_dataset.train_mask], len(modified_dataset.y.unique()))
+embeddings = model.embeddings
+prototypes = model.prototypes
 util.plot_embeddings(torch.cat([embeddings,prototypes]).detach(),
                      labels=torch.cat([dataset.y, torch.Tensor((modified_dataset.y.max()+1)*[1+modified_dataset.y.max()])]))
