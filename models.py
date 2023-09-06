@@ -58,5 +58,5 @@ class GPN_Encoder(torch.nn.Module):
         return prototype_loss + euclidean_loss + cosine_loss
 
 class GCN(torch_geometric.nn.models.GCN):
-    def get_loss(self, embeddings, ground_truth, num_labels):
+    def loss(self, embeddings, ground_truth, num_labels):
         return F.nll_loss(F.log_softmax(embeddings, dim=1), ground_truth)

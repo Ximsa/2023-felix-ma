@@ -24,39 +24,6 @@ def get_prototypes(embeddings, labels, num_labels):
         (torch.mean(embeddings[labels==label], dim=0) if len(embeddings[labels==label]) > 0 else torch.zeros(embeddings.size(1))) for label in range(num_labels)])
     return prototypes
 
-def get_cosine_loss(prototypes):
-    # modeled after https://dl.acm.org/doi/pdf/10.1145/3607144, equation 6
-    geometric_center = torch.mean(prototypes, dim=0)
-    normalized_prototypes = F.normalize(prototypes - geometric_center)
-    cosine_distances = torch.mm(normalized_prototypes,normalized_prototypes.T) - torch.eye(normalized_prototypes.size(0))
-    biggest_distances = torch.max(cosine_distances, dim=1).values
-    loss = torch.mean(biggest_distances)
-    return loss
-
-def get_euclidean_loss(prototypes):
-    # modeled after https://dl.acm.org/doi/pdf/10.1145/3607144, equation 5
-    prototype_distances = torch.cdist(prototypes, prototypes)
-    distance_scores = torch.exp(-prototype_distances) * (1 - torch.eye(prototype_distances.size(0)))
-    biggest_distances = torch.max(distance_scores, dim=1).values
-    loss = torch.mean(biggest_distances)
-    return loss
-
-def get_prototype_loss(embeddings, prototypes, ground_truth, num_labels):
-    # modeled after https://dl.acm.org/doi/pdf/10.1145/3607144, equation 3 and 4
-    prototype_distances = torch.cdist(embeddings, prototypes)
-    prototype_scores = torch.exp(-prototype_distances)
-    prototype_total_scores = torch.sum(prototype_scores, dim=1)
-    prototype_probabilities = prototype_scores / prototype_total_scores.unsqueeze(-1)
-    loss = F.nll_loss(F.log_softmax(prototype_probabilities, dim=1), ground_truth)
-    return loss
-
-def get_prototypical_loss(embeddings, ground_truth, num_labels):
-    prototypes = get_prototypes(embeddings, ground_truth, num_labels)
-    prototype_loss = get_prototype_loss(embeddings, prototypes, ground_truth, num_labels)
-    euclidean_loss = get_euclidean_loss(prototypes)
-    cosine_loss = get_cosine_loss(prototypes)
-    return prototype_loss + euclidean_loss + cosine_loss
-
 def accuracy(embeddings, true_labels, mask):
     prototypes = get_prototypes(embeddings[mask], true_labels[mask], len(true_labels.unique()))
     distances = get_distances(embeddings[mask], prototypes)
@@ -94,7 +61,7 @@ def run(model, dataset, runs=10, budget=100, learning_rate=0.001):
         acc = {}
         while(budget > 0):
             # ask active learner for vertices
-            sampled_indices = select_vertices(10, model, dataset)
+            sampled_indices = select_vertices(min(budget, 10), model, dataset)
             budget -= len(sampled_indices)
             # move sampled vertices from the validation to the training set
             dataset.val_mask[sampled_indices] = False
@@ -108,11 +75,11 @@ dataset = datasets.get_dataset('Cora')
 num_classes = len(dataset.y.unique()) # todo: put into dataset
 # run prototypical
 model = partial(GPN_Encoder,dataset.num_node_features, embedding_dim=16, dropout=0.5)
-result_gpn = run(model=model, dataset=dataset, runs=1,budget=1000)
+result_gpn = run(model=model, dataset=dataset, runs=5,budget=100)
 
 #run conventional gcn
 model = partial(GCN, in_channels=dataset.num_node_features, hidden_channels=128, num_layers=2, out_channels=num_classes, dropout=0.5)
-result_gcn = run(model=model, dataset=dataset, runs=5,budget=30)
+result_gcn = run(model=model, dataset=dataset, runs=5,budget=100)
 
 
 embeddings = result_gpn[0]['model'](dataset.x, dataset.edge_index)
