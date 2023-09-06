@@ -18,9 +18,9 @@ from models import GPN_Encoder, GCN
 def accuracy(predictions, true_labels, mask):
     """Calculates accuracy, macro-f1 and the confusion matrix
 
-    :param tensor predictions: Predicted labels
-    :param tensor true_labels: Ground truth
-    :param tensor mask: Mask for instance selection
+    :param predictions: Predicted labels
+    :param true_labels: Ground truth
+    :param mask: Mask for instance selection
     :returns: dictionary of accuracy scores (acc, macro-f1, and confusion matrix)
     """
     return {"accuracy": accuracy_score(predictions[mask], true_labels[mask]),
@@ -28,6 +28,14 @@ def accuracy(predictions, true_labels, mask):
             "confusion": confusion_matrix(true_labels[mask], predictions[mask]),}
 
 def train(n, optimizer, model, dataset):
+    """Trains and alters given model for n epochs
+
+    :param n: number of epochs
+    :param optimizer: optimizer
+    :param model: model to train on
+    :param dataset: dataset with train/validation/test split
+    :returns: dictionary of train and test statistics
+    """
     num_labels = len(dataset.y.unique())
     model.train()
     for i in range(n):
@@ -42,12 +50,36 @@ def train(n, optimizer, model, dataset):
             "test": accuracy(predictions, dataset.y, dataset.val_mask)}
 
 def select_vertices(n, model, dataset):
+    """selects vertices of a dataset to be included into the test set
+
+    :param n: number of samples to draw
+    :param model: future use
+    :param dataset: data to sample from
+    :returns: selected vertex indices
+    """
     # get indices which we can sample from
     sampled_indices = torch.multinomial(dataset.val_mask.float(), n)
     return sampled_indices
 
 def run(model, dataset, runs=10, budget=100, learning_rate=0.001):
+    """constructs given model and performs training
+
+    :param model: model constructor with 0 args for model construction
+    :param dataset: data for training, testing, and validation
+    :param budget: number of labels moving from validation to training
+    :param learning_rate: learning rate of the optimizer
+    :returns: run statistics with model
+    """
     def run_once(model, dataset, budget, learning_rate):
+        """rund given model "runs" times with the same settings
+
+        :param model: model constructor with 0 args for model construction
+        :param dataset: data for training, testing, and validation
+        :param runs: number of repeats for each experiment
+        :param budget: number of labels moving from validation to training
+        :param learning_rate: learning rate of the optimizer
+        :returns: list of run statistics with models
+        """
         model = model()
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=5e-4)
         acc = {}
