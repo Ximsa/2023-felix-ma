@@ -16,7 +16,15 @@ datasets = {"Cora": Planetoid,
             "Reddit": lambda name, **kwargs: Reddit(**kwargs),
             "ogbn-arxiv": PygNodePropPredDataset}
 
-def create_split(data, train_portion=0.0, val_portion=0.8, seed=None):  
+def create_split(data, train_portion=0.0, val_portion=0.8, seed=None):
+    """splits the dataset into train, validation, and test
+
+    :param data: dataset to split
+    :param train_portion: portion of trainig data [0-1]
+    :param val_portion: portion of validation data [0-1]
+    :param seed: rng seed
+    :returns: tuple of train, validation, test masks
+    """
     y = data.y.cpu().detach().numpy()
     unique, counts = np.unique(y, return_counts=True)
     rng = np.random.default_rng(seed)
@@ -43,6 +51,11 @@ def create_split(data, train_portion=0.0, val_portion=0.8, seed=None):
     return train_mask, val_mask, test_mask
 
 def get_dataset(dataset_name):
+    """returns dataset of given name
+
+    :param dataset_name: case sensitive name of dataset
+    :returns: processed dataset
+    """
     load_function = datasets[dataset_name]
     dataset_location = ''.join(["/tmp/", dataset_name])
     dataset = load_function(root=dataset_location, name=dataset_name)[0]
@@ -52,9 +65,12 @@ def get_dataset(dataset_name):
     return dataset
 
 def get_homophily(dataset):
+    """calculates homophily of a dataset
+    """
     return homophily(dataset.edge_index, dataset.y, method='edge_insensitive')
 
 def get_class_sizes(dataset):
+    """calculates class distributions of given dataset"""
     return torch.bincount(dataset.y)
 
 #for name in datasets.keys():
