@@ -1,18 +1,45 @@
 from matplotlib import pyplot as plt
 import matplotlib
+import torch
+import networkx as nx
 from sklearn.manifold import TSNE
 from sklearn.metrics import confusion_matrix
-def plot_embeddings(embeddings, labels=None, save=False):
+from toolz.itertoolz import partition
+
+
+def plot_embeddings(embeddings, labels):
+    embeddings = embeddings.detach()
     xs = embeddings[:,0]
     ys = embeddings[:,1]
-    if embeddings.size(1) != 2:
-        reduced = TSNE(n_components=2).fit_transform(embeddings.detach())
-        xs = reduced[:,0]
-        ys = reduced[:,1]
+    embeddings = TSNE(n_components=2).fit_transform(embeddings)
+    xs = embeddings[:,0]
+    ys = embeddings[:,1]
     if labels is None:
-        labels = range(len(xs))
+        labels = torch.tensor([0] * len(xs))
     plt.scatter(xs, ys, c=labels)
+    
 
 def plot_confusion_matrix(xs,ys):
     matrix = confusion_matrix(xs,ys)
     plt.imshow(matrix, cmap='hot', interpolation='nearest')
+
+def cond(value, *clauses):
+    """
+    similar to https://clojuredocs.org/clojure.core/case
+    :param value: Value to be matches against the clauses
+    :param clauses: Clauses to be matched
+    :return: result of matched expression
+    """
+    clauses = partition(2, clauses, pad=None)
+    for clause in clauses:
+        test, result = clause
+        if result is None: # default case
+            return test
+        elif type(test) is tuple:
+            for t in test:
+                if t == value:
+                    return result
+        elif test == value:
+            return result
+    return None
+        
