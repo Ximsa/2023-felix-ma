@@ -5,12 +5,20 @@ from torch_geometric.nn import GCNConv
 import torch_geometric.nn.models
 
 class GPN_Encoder(torch.nn.Module):
-    def __init__(self, num_node_features, embedding_dim, num_classes, dropout):
+    def __init__(self,
+                 num_node_features,
+                 num_classes,
+                 pagerank_scores,
+                 embedding_dim = 16,
+                 dropout = 0.5,
+                 distance_loss_weight = 1.0):
         super().__init__()
         self.conv1 = GCNConv(num_node_features, embedding_dim*8)
         self.conv2 = GCNConv(embedding_dim*8, embedding_dim)
         self.dropout = dropout
-        self.prototypes = torch.zeros([num_classes, embedding_dim])
+        self.distance_loss_weight = distance_loss_weight
+        self.pagerank_scores = pagerank_scores
+        self.prototypes = torch.rand([num_classes, embedding_dim])
 
     def forward(self, x, edge_index):
         x = self.conv1(x, edge_index)
@@ -26,10 +34,19 @@ class GPN_Encoder(torch.nn.Module):
         return probabilities
 
     def get_prototypes(self, labels, train_mask, num_classes):
+        # TODO: use pagerank (networkX)weights, see https://dl.acm.org/doi/pdf/10.1145/3607144
         embeddings = self.embeddings[train_mask]
+        pagerank_scores = self.pagerank_scores[train_mask]
         # position unknown prototypes to the center to "force" labels away from center
-        prototypes = torch.stack([
-            (torch.mean(embeddings[labels==label], dim=0) if len(embeddings[labels==label]) > 0 else torch.zeros(embeddings.size(1))) for label in range(num_classes)])
+        prototypes = []
+        for label in range(num_classes):
+            if len(embeddings[labels==label]) > 0:
+                prototypes.append(
+                    (embeddings[labels==label] * pagerank_scores[labels==label].unsqueeze(1)).sum(dim=0) / pagerank_scores[labels==label].sum())
+            else:
+                prototypes.append(torch.zeros(embeddings.size(1)))
+                           
+        prototypes = torch.stack(prototypes)
         return prototypes
 
     def cosine_loss(self):
@@ -66,7 +83,7 @@ class GPN_Encoder(torch.nn.Module):
         prototype_loss = self.prototype_loss(ground_truth, train_mask, num_classes)
         euclidean_loss = self.euclidean_loss()
         cosine_loss = self.cosine_loss()
-        return prototype_loss + euclidean_loss + cosine_loss
+        return prototype_loss + self.distance_loss_weight * (euclidean_loss + cosine_loss)
 
 class GCN(torch_geometric.nn.models.GCN):
     def loss(self, dataset, probabilities):

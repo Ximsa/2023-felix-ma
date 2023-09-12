@@ -3,6 +3,8 @@ import torch
 import json
 from scipy.stats import entropy
 from sklearn.cluster import KMeans
+from sklearn_extra.cluster import KMedoids
+from sklearn.metrics import f1_score
 from torch.func import vmap
 from toolz.functoolz import pipe, thread_first, identity, do
 from toolz.itertoolz import groupby, first
@@ -62,14 +64,29 @@ def model_sampling(n, model, dataset, classifier):
     :param n: Number of samples to draw
     :param model: model
     :param dataset: Data to sample from
+    :param classifier: fallback if model f1 accuracy is low
     :returns: Selected vertex indices
     """
+    model_labels = model(dataset.x, dataset.edge_index).argmax(dim=1).detach()
+    clustered_labels = torch.from_numpy(classifier.predict(dataset.x))
+    chosen_labels = clustered_labels
+    if dataset.test_mask.sum() > 0:
+        clustered_train_labels = clustered_labels[dataset.test_mask]
+        mapping = find_agreeing_label_mapping(dataset.y[dataset.test_mask],
+                                              clustered_train_labels,
+                                              x_labels = dataset.y.unique())
+        clustered_train_labels = clustered_train_labels.apply_(lambda x: mapping[x])
+        clustered_f1 = f1_score(dataset.y[dataset.test_mask], clustered_train_labels, average='macro')
+        model_train_labels = model_labels[dataset.test_mask]
+        model_f1 = f1_score(dataset.y[dataset.test_mask], model_train_labels, average='macro')
+        chosen_labels = clustered_labels if model_f1 < clustered_f1 else model_labels
+        #print(clustered_f1, model_f1)
     return classifier_sampling(n,
                                model,
                                dataset,
-                               model(dataset.x, dataset.edge_index).argmax(dim=1).detach().numpy())
+                               chosen_labels)
 
-def kmeans_sampling(n, model, dataset, classifier):
+def kmedoids_sampling(n, model, dataset, classifier):
     """
     Selects vertices of a dataset using the classifier to be included into the test set.
     From those vertices the ones with the highest entrophy and degree are sampled
@@ -81,7 +98,7 @@ def kmeans_sampling(n, model, dataset, classifier):
     return classifier_sampling(n,
                                model,
                                dataset,
-                               classifier.predict(dataset.x))
+                               torch.from_numpy(classifier.predict(dataset.x)))
 
 
 def classifier_sampling(n, model, dataset, labels):
@@ -92,11 +109,13 @@ def classifier_sampling(n, model, dataset, labels):
     :param n: Number of samples to draw
     :param model: model
     :param dataset: Data to sample from
+    :param labels: Labels to base the decision on
     :returns: Selected vertex indices
     """
     exclude_mask = torch.logical_or(dataset.train_mask,
                                     dataset.test_mask)
     labels[exclude_mask] = dataset.num_classes # create an "excluded" class
+    labels = labels.numpy() # convert to np for groupby
     # group indices by label and remove excluded indices
     grouped_indices = groupby(lambda x: labels[x], range(0, len(dataset.y)))
     grouped_indices = dissoc(grouped_indices, dataset.num_classes)
@@ -117,7 +136,7 @@ def classifier_sampling(n, model, dataset, labels):
                 probabilities[indices].T,
                 entropy,
                 torch.from_numpy,
-                lambda entropies: entropies,# * #degrees[indices],
+                lambda entropies: entropies * degrees[indices],
                 torch.sort)
             sorted_indices = torch.tensor(indices)[sorted_indices_indices]
             sampled_indices = torch.cat([sampled_indices,
@@ -145,7 +164,7 @@ def disagreement_sampling(n, model, dataset, classifier):
     classifier_prediction = classifier_prediction.apply_(lambda x: mapping[x])
     disagreeing_labels = (classifier_prediction == model_prediction)
     
-def find_agreeing_label_mapping(xs, ys, unique_assignment=True):
+def find_agreeing_label_mapping(xs, ys, x_labels=None, unique_assignment=True):
     """
     Finds a (good, non-perfect) permutation, that maximizes the aggreement between label mappings.
     Assumes labels to range from 0 to n without holes
@@ -154,7 +173,8 @@ def find_agreeing_label_mapping(xs, ys, unique_assignment=True):
     :param model: labels provided from another classifier
     :returns: mapping that tries to maximize the agreement
     """
-    x_labels = xs.unique(sorted=True)
+    if x_labels == None:
+        x_labels = xs.unique(sorted=True)
     found_y_labels = []
     for x_label in x_labels:
         y_labels = ys.unique()
@@ -175,4 +195,4 @@ sampler = {"random": random_sampling,
            "entropy": entropy_sampling,
            "degree": degree_sampling,
            "model": model_sampling,
-           "kmeans": kmeans_sampling,}
+           "kmedoids": kmedoids_sampling,}
