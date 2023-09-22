@@ -9,12 +9,13 @@ class GPN_Encoder(torch.nn.Module):
                  num_node_features,
                  num_classes,
                  pagerank_scores,
+                 hidden_dim_multiplier = 4,
                  embedding_dim = 16,
                  dropout = 0.5,
                  distance_loss_weight = 1.0):
         super().__init__()
-        self.conv1 = GCNConv(num_node_features, embedding_dim*8)
-        self.conv2 = GCNConv(embedding_dim*8, embedding_dim)
+        self.conv1 = GCNConv(num_node_features, embedding_dim*hidden_dim_multiplier)
+        self.conv2 = GCNConv(embedding_dim*hidden_dim_multiplier, embedding_dim)
         self.dropout = dropout
         self.distance_loss_weight = distance_loss_weight
         self.pagerank_scores = pagerank_scores
@@ -79,7 +80,7 @@ class GPN_Encoder(torch.nn.Module):
         ground_truth = dataset.y[dataset.train_mask]
         train_mask = dataset.train_mask
         num_classes = dataset.num_classes
-        self.prototypes = self.get_prototypes(ground_truth, train_mask, num_classes)
+        self.prototypes = self.get_prototypes(ground_truth, train_mask, num_classes) # prototypes are a learnable parameter now
         prototype_loss = self.prototype_loss(ground_truth, train_mask, num_classes)
         euclidean_loss = self.euclidean_loss()
         cosine_loss = self.cosine_loss()

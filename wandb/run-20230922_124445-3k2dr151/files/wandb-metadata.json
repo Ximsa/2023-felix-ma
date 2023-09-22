@@ -1,0 +1,107 @@
+{
+    "os": "Linux-6.2.0-33-generic-x86_64-with-glibc2.35",
+    "python": "3.10.12",
+    "heartbeatAt": "2023-09-22T10:44:46.901085",
+    "startedAt": "2023-09-22T10:44:45.315190",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "<python with no main file>",
+    "codePathLocal": null,
+    "git": {
+        "remote": "git@gitlab.informatik.uni-ulm.de:dbis/data-science-and-big-data-analytics/teaching/2023-felix-ma.git",
+        "commit": "318f482a1d037cb8be57586c2958edef2fd6aa84"
+    },
+    "email": "burrfelix@aol.de",
+    "root": "/home/felix/Documents/git/2023-felix-ma",
+    "host": "felix-IdeaPad-5-Pro-16ACH6",
+    "username": "felix",
+    "executable": "/usr/bin/python",
+    "cpu_count": 6,
+    "cpu_count_logical": 12,
+    "cpu_freq": {
+        "current": 2.7115833333333335,
+        "min": 1200.0,
+        "max": 3300.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3.087,
+            "min": 1200.0,
+            "max": 3300.0
+        },
+        {
+            "current": 3.233,
+            "min": 1200.0,
+            "max": 3300.0
+        },
+        {
+            "current": 3.573,
+            "min": 1200.0,
+            "max": 3300.0
+        },
+        {
+            "current": 1.2,
+            "min": 1200.0,
+            "max": 3300.0
+        },
+        {
+            "current": 3.865,
+            "min": 1200.0,
+            "max": 3300.0
+        },
+        {
+            "current": 3.623,
+            "min": 1200.0,
+            "max": 3300.0
+        },
+        {
+            "current": 3.488,
+            "min": 1200.0,
+            "max": 3300.0
+        },
+        {
+            "current": 3.249,
+            "min": 1200.0,
+            "max": 3300.0
+        },
+        {
+            "current": 3.79,
+            "min": 1200.0,
+            "max": 3300.0
+        },
+        {
+            "current": 3.144,
+            "min": 1200.0,
+            "max": 3300.0
+        },
+        {
+            "current": 3.153,
+            "min": 1200.0,
+            "max": 3300.0
+        },
+        {
+            "current": 3.304,
+            "min": 1200.0,
+            "max": 3300.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 429.5657424926758,
+            "used": 66.2282600402832
+        }
+    },
+    "gpu": "NVIDIA GeForce GTX 1650",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce GTX 1650",
+            "memory_total": 4294967296
+        }
+    ],
+    "memory": {
+        "total": 14.969367980957031
+    }
+}

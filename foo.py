@@ -1,19 +1,29 @@
-from matplotlib import pyplot as plt
+import wandb
+import random
+wandb.login()
+# start a new wandb run to track this script
+wandb.init(
+    # set the wandb project where this run will be logged
+    project="my-awesome-project",
+    
+    # track hyperparameters and run metadata
+    config={
+    "learning_rate": 0.02,
+    "architecture": "CNN",
+    "dataset": "CIFAR-100",
+    "epochs": 10,
+    }
+)
 
-fig = plt.figure(figsize=(6,6))
-fig.set_facecolor('w')
-plt.scatter([1,2,3], [4,5,3])
-
-import torch
-
-x = torch.rand(5, 3)
-print(x)
-
-import torch
-from torch_geometric.data import Data
-
-edge_index = torch.tensor([[0, 1, 1, 2],
-                           [1, 0, 2, 1]], dtype=torch.long)
-x = torch.tensor([[-1], [0], [1]], dtype=torch.float)
-
-data = Data(x=x, edge_index=edge_index)
+# simulate training
+epochs = 10
+offset = random.random() / 5
+for epoch in range(2, epochs):
+    acc = 1 - 2 ** -epoch - random.random() / epoch - offset
+    loss = 2 ** -epoch + random.random() / epoch + offset
+    
+    # log metrics to wandb
+    wandb.log({"acc": acc, "loss": loss})
+    
+# [optional] finish the wandb run, necessary in notebooks
+wandb.finish()

@@ -1,6 +1,7 @@
 from matplotlib import pyplot as plt
 import matplotlib
 import torch
+import pandas
 import networkx as nx
 from sklearn.manifold import TSNE
 from sklearn.metrics import confusion_matrix
@@ -17,11 +18,18 @@ def plot_embeddings(embeddings, labels):
     if labels is None:
         labels = torch.tensor([0] * len(xs))
     plt.scatter(xs, ys, c=labels)
+
+def plot_clusterer(clusterer, dataset):
+    labels = clusterer.predict(dataset.x)
+    plot_embeddings(dataset.x, labels)
     
 
 def plot_confusion_matrix(xs,ys):
     matrix = confusion_matrix(xs,ys)
     plt.imshow(matrix, cmap='hot', interpolation='nearest')
+
+def save_results(results, file_name):
+    df = pandas.DataFrame()
 
 def cond(value, *clauses):
     """

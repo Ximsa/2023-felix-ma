@@ -18,6 +18,8 @@ def random_sampling(n, model, dataset, classifier):
     :param n: Number of samples to draw
     :param model: unused
     :param dataset: Data to sample from
+    :param classifier: unused
+    :param generator: torch random number generator
     :returns: Selected vertex indices
     """
     # get indices which we can sample from
@@ -30,6 +32,8 @@ def entropy_sampling(n, model, dataset, classifier):
     :param n: Number of samples to draw
     :param model: unused
     :param dataset: Data to sample from
+    :param classifier: unused
+    :param generator: unused
     :returns: Selected vertex indices
     """
     probabilities = model(dataset.x, dataset.edge_index)
@@ -48,6 +52,8 @@ def degree_sampling(n, model, dataset, classifier):
     :param n: Number of samples to draw
     :param model: unused
     :param dataset: Data to sample from
+    :param classifier: unused
+    :param generator: unused
     :returns: Selected vertex indices
     """
     degrees = degree(dataset.edge_index[0], dataset.num_nodes)
@@ -65,6 +71,7 @@ def model_sampling(n, model, dataset, classifier):
     :param model: model
     :param dataset: Data to sample from
     :param classifier: fallback if model f1 accuracy is low
+    :param generator: unused
     :returns: Selected vertex indices
     """
     model_labels = model(dataset.x, dataset.edge_index).argmax(dim=1).detach()
@@ -93,6 +100,8 @@ def kmedoids_sampling(n, model, dataset, classifier):
     :param n: Number of samples to draw
     :param model: unused
     :param dataset: Data to sample from
+    :param classifier: Classifier that creates pseudo-labels
+    :param generator: unused
     :returns: Selected vertex indices
     """
     return classifier_sampling(n,
@@ -101,7 +110,7 @@ def kmedoids_sampling(n, model, dataset, classifier):
                                torch.from_numpy(classifier.predict(dataset.x)))
 
 
-def classifier_sampling(n, model, dataset, labels):
+def classifier_sampling(n, model, dataset, labels, oversampling_compensation=False):
     """
     Selects vertices of a dataset using the labels from a classifier,
     which are used for increasing diversity.
@@ -110,6 +119,7 @@ def classifier_sampling(n, model, dataset, labels):
     :param model: model
     :param dataset: Data to sample from
     :param labels: Labels to base the decision on
+    :param oversampling_compensation: tries to compensate lesser sampled classes, doesn't work with pseudolabels
     :returns: Selected vertex indices
     """
     exclude_mask = torch.logical_or(dataset.train_mask,
@@ -120,29 +130,32 @@ def classifier_sampling(n, model, dataset, labels):
     grouped_indices = groupby(lambda x: labels[x], range(0, len(dataset.y)))
     grouped_indices = dissoc(grouped_indices, dataset.num_classes)
     # determine samples to be drawn per class
+    # determine classes that have been oversampled
+    probabilities = model(dataset.x, dataset.edge_index).detach()
+    sample_stats = torch.bincount(dataset.y[dataset.train_mask])
     samples_per_class = torch.tensor([n // dataset.num_classes for i in range(dataset.num_classes)])
     remainder = n % dataset.num_classes
     if remainder > 0:
         samples_per_class[torch.multinomial(
             torch.ones(dataset.num_classes, dtype=float), remainder)] += 1
-    # draw samples based in entropy and degree score
-    probabilities = model(dataset.x, dataset.edge_index).detach()
+    # draw samples based on entropy and degree score
     sampled_indices = torch.tensor([], dtype=int)
     degrees = degree(dataset.edge_index[0], dataset.num_nodes)
     for label, indices in grouped_indices.items():
         num_samples = samples_per_class[label]
         if(num_samples > 0):
             sorted_scores, sorted_indices_indices = pipe(
-                probabilities[indices].T,
+                probabilities[indices].T, # secondary sampling by entropy and degree
                 entropy,
                 torch.from_numpy,
-                lambda entropies: entropies * degrees[indices],
+                lambda entropies: entropies * degrees[indices], # todo normalize
                 torch.sort)
             sorted_indices = torch.tensor(indices)[sorted_indices_indices]
             sampled_indices = torch.cat([sampled_indices,
                                          sorted_indices[-samples_per_class[label]:]])
     return sampled_indices
 
+#todo finish
 def disagreement_sampling(n, model, dataset, classifier):
     """Samples vertices based upon disagreement between the classifier and the model
     
@@ -163,7 +176,8 @@ def disagreement_sampling(n, model, dataset, classifier):
                                           classifier_prediction[mapper_mask])
     classifier_prediction = classifier_prediction.apply_(lambda x: mapping[x])
     disagreeing_labels = (classifier_prediction == model_prediction)
-    
+
+#todo: test
 def find_agreeing_label_mapping(xs, ys, x_labels=None, unique_assignment=True):
     """
     Finds a (good, non-perfect) permutation, that maximizes the aggreement between label mappings.

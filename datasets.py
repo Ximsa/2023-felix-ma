@@ -16,7 +16,7 @@ datasets = {"Cora": Planetoid,
             "Reddit": lambda name, **kwargs: Reddit(**kwargs),
             "ogbn-arxiv": PygNodePropPredDataset}
 
-def create_split(data, train_portion=0.0, val_portion=0.8, seed=None):
+def create_split(data, train_portion=0.0, val_portion=0.7, seed=None):
     """Splits the dataset into train, validation, and test
 
     :param data: Dataset to split
