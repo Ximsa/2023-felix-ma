@@ -4,7 +4,6 @@ import torch.nn.functional as F
 from torch_geometric.datasets import Planetoid
 from torch_geometric.utils import to_networkx
 from networkx import pagerank
-from sklearn.cluster import KMeans, SpectralClustering, DBSCAN
 from sklearn_extra.cluster import KMedoids
 from sklearn.decomposition import PCA
 from sklearn.metrics import f1_score, confusion_matrix, accuracy_score
@@ -14,6 +13,7 @@ import matplotlib
 import itertools
 import pandas
 import operator
+import yaml
 import numpy as np
 from functools import partial
 from toolz.itertoolz import iterate, first, concat, cons
@@ -51,24 +51,17 @@ def train(n, optimizer, model, dataset, early_stopping=False): #TODO: implement 
     """
     num_labels = len(dataset.y.unique())
     model.train()
-    train_stats = {"accuracy": [],
-                   "macro-f1": [],
-                   "confusion": []}
-    test_stats = {"accuracy": [],
-                   "macro-f1": [],
-                   "confusion": []}
     for i in range(n):
         optimizer.zero_grad()
         probabilities = model(dataset.x, dataset.edge_index)
         loss = model.loss(dataset, probabilities)
         loss.backward()
         optimizer.step()
-        predictions = torch.argmax(probabilities, dim=1)
-        def combine_training_stats(x):
-            return x[0] + [x[1]]
-        train_stats = merge_with(combine_training_stats, train_stats, accuracy(predictions, dataset.y, dataset.train_mask))
-        test_stats = merge_with(combine_training_stats, test_stats, accuracy(predictions, dataset.y, dataset.test_mask))
-    return train_stats, test_stats
+    model.eval()
+    probabilities = model(dataset.x, dataset.edge_index)
+    predictions = torch.argmax(probabilities, dim=1)
+    return (accuracy(predictions, dataset.y, dataset.train_mask), # train acc
+            accuracy(predictions, dataset.y, dataset.test_mask)) # test acc
 
 def run(model, dataset, sampler='model', runs=10, budget=100, seed=133742069, train_epochs=16, learning_rate=0.001):
     """Runs experiments on given model "runs" times with the same settings
@@ -98,24 +91,27 @@ def run(model, dataset, sampler='model', runs=10, budget=100, seed=133742069, tr
         full_test_stats = {"accuracy": [],
                            "macro-f1": [],
                            "confusion": []}
+        initial_budget = budget
+        budget_history = []
         while(budget > 0):
             # ask active learner for vertices
             sampled_indices = sampler_fun(min(budget, dataset.num_classes), model, dataset, classifier)
             budget -= len(sampled_indices)
+            budget_history.append(initial_budget - budget)
             # move sampled vertices from the validation to the training set
             dataset.val_mask[sampled_indices] = False
             dataset.train_mask[sampled_indices] = True
             train_stats, test_stats = train(train_epochs, optimizer, model, dataset)
             def combine_training_stats(x):
-                return x[0] + x[1]
+                return x[0] + [x[1]]
             full_train_stats = merge_with(combine_training_stats, full_train_stats, train_stats)
             full_test_stats = merge_with(combine_training_stats, full_test_stats, test_stats)
-        return {"train": full_train_stats,
+        return {"budget_used": budget_history,
+                "train": full_train_stats,
                 "test": full_test_stats}
     # perform experiments
     results = []
     for i in range(runs):
-        print(seed)
         torch.manual_seed(seed) # update seeds
         np.random.seed(seed)
         random.seed(seed)
@@ -137,12 +133,11 @@ def run_config(dataset_names, samplers, budget, seed, repeats, hyperparameters):
                                         'distance_loss_weight',
                                         'train_epochs',
                                         'learning_rate',
-                                        'train_accuracy',
-                                        'train_macro_f1',
+                                        'budget',
                                         'test_accuracy',
                                         'test_macro_f1',
                                         'test_confusion',])
-    for dataset_name, sampler_name in zip(dataset_names, samplers):
+    for dataset_name, sampler_name in itertools.product(dataset_names, samplers):
         dataset = datasets.get_dataset(dataset_name)
         keys, values = zip(*hyperparameters.items())
         for bundle in itertools.product(*values):
@@ -157,49 +152,60 @@ def run_config(dataset_names, samplers, budget, seed, repeats, hyperparameters):
                                                             'dropout',
                                                             'distance_loss_weight'],
                                             config))
-            result = run(model=gpn_model,
-                         dataset=dataset,
-                         sampler=sampler_name,
-                         runs=repeats,
-                         budget=budget,
-                         seed=seed,
-                         **keyfilter(lambda x: x in ['train_epochs',
-                                                     'learning_rate'],
-                                     config))
-            # todo: average runs
-            result = result[0]
+            run_results = run(model=gpn_model,
+                              dataset=dataset,
+                              sampler=sampler_name,
+                              runs=repeats,
+                              budget=budget,
+                              seed=seed,
+                              **keyfilter(lambda x: x in ['train_epochs',
+                                                          'learning_rate'],
+                                          config))
             # insert result into dataframe
-            results.loc[len(results)] = [dataset_name,
-                                         sampler_name,
-                                         hyperparameters['embedding_dim'],
-                                         hyperparameters['hidden_dim_multiplier'],
-                                         hyperparameters['dropout'],
-                                         hyperparameters['distance_loss_weight'],
-                                         hyperparameters['train_epochs'],
-                                         hyperparameters['learning_rate'],
-                                         result['train']['accuracy'],
-                                         result['train']['macro-f1'],
-                                         result['test']['accuracy'],
-                                         result['test']['macro-f1'],
-                                         result['test']['confusion']]
+            for result in run_results:
+                for i in range(len(result['test']['accuracy'])):
+                    row = [dataset_name,
+                           sampler_name,
+                           config['embedding_dim'],
+                           config['hidden_dim_multiplier'],
+                           config['dropout'],
+                           config['distance_loss_weight'],
+                           config['train_epochs'],
+                           config['learning_rate'],
+                           result['budget_used'][i],
+                           result['test']['accuracy'][i],
+                           result['test']['macro-f1'][i],
+                           result['test']['confusion'][i]]
+                    print(row[:-1])
+                    results.loc[len(results)] = row
     return results
+
+def load_and_run_config(filename):
+    with open(filename, "r") as f:
+        config = yaml.load(f)
+        print(config)
+        return run_config(**config)
+
+
+    
 
 dataset = datasets.get_dataset('Cora')
 
 example_run_config = {
     'dataset_names': ['Cora'],
-    'samplers': ['random'],
-    'budget': 80,
+    'samplers': ['random', 'entropy', 'degree', 'model', 'kmedoids'],
+    'budget': 100,
     'seed': 3133742069,
-    'repeats': 1,
+    'repeats': 10,
     'hyperparameters':{
         'embedding_dim': [16],
-        'hidden_dim_multiplier': [8],
-        'dropout': [0.5, 0.8],
-        'distance_loss_weight': [0.5, 1, 2],
-        'train_epochs': [20],
-        'learning_rate': [1e-3, 1e-4]}}
-run_config(**example_run_config)
+        'hidden_dim_multiplier': [6],
+        'dropout': [0.5],
+        'distance_loss_weight': [1],
+        'train_epochs': [15,20],
+        'learning_rate': [3e-3]}}
+result = run_config(**example_run_config)
+result.to_csv("results.csv", sep=";")
 
 # prototypical
 rank = torch.tensor(list(pagerank(to_networkx(dataset)).values()))

@@ -4,7 +4,8 @@ import numpy as np
 from functools import partial
 from enum import Enum
 from collections import Counter
-from torch_geometric.utils import homophily
+from torch_geometric.utils import homophily, to_networkx
+from networkx import pagerank
 from ogb.nodeproppred import PygNodePropPredDataset
 from torch_geometric.datasets import Planetoid, Reddit
 from torch_geometric.nn.functional import gini
@@ -62,6 +63,7 @@ def get_dataset(dataset_name):
     dataset.y = torch.flatten(dataset.y)
     dataset.train_mask, dataset.val_mask, dataset.test_mask = create_split(dataset)
     dataset.num_classes = len(dataset.y.unique())
+    dataset.pagerank = torch.tensor(list(pagerank(to_networkx(dataset)).values()))
     return dataset
 
 def get_homophily(dataset):
