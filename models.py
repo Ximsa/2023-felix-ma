@@ -31,8 +31,8 @@ class GPN_Encoder(torch.nn.Module):
         distances = torch.cdist(x, self.prototypes)
         scores = torch.exp(-distances)
         total_scores = torch.sum(scores, dim=1)
-        probabilities = scores / total_scores.unsqueeze(-1)
-        return probabilities
+        logits = scores / total_scores.unsqueeze(-1)
+        return logits
 
     def get_prototypes(self, labels, train_mask, num_classes):
         # TODO: use pagerank (networkX)weights, see https://dl.acm.org/doi/pdf/10.1145/3607144

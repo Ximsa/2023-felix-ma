@@ -53,13 +53,13 @@ def train(n, optimizer, model, dataset, early_stopping=False): #TODO: implement 
     model.train()
     for i in range(n):
         optimizer.zero_grad()
-        probabilities = model(dataset.x, dataset.edge_index)
-        loss = model.loss(dataset, probabilities)
+        logits = model(dataset.x, dataset.edge_index)
+        loss = model.loss(dataset, logits)
         loss.backward()
         optimizer.step()
     model.eval()
-    probabilities = model(dataset.x, dataset.edge_index)
-    predictions = torch.argmax(probabilities, dim=1)
+    logits = model(dataset.x, dataset.edge_index)
+    predictions = torch.argmax(logits, dim=1)
     return (accuracy(predictions, dataset.y, dataset.train_mask), # train acc
             accuracy(predictions, dataset.y, dataset.test_mask)) # test acc
 
@@ -106,6 +106,7 @@ def run(model, dataset, sampler='model', runs=10, budget=100, seed=133742069, tr
                 return x[0] + [x[1]]
             full_train_stats = merge_with(combine_training_stats, full_train_stats, train_stats)
             full_test_stats = merge_with(combine_training_stats, full_test_stats, test_stats)
+        print(full_test_stats['accuracy'][-1])
         return {"budget_used": budget_history,
                 "train": full_train_stats,
                 "test": full_test_stats}
@@ -176,7 +177,7 @@ def run_config(dataset_names, samplers, budget, seed, repeats, hyperparameters):
                            result['test']['accuracy'][i],
                            result['test']['macro-f1'][i],
                            result['test']['confusion'][i]]
-                    print(row[:-1])
+                    #print(row[:-1])
                     results.loc[len(results)] = row
     return results
 
@@ -193,20 +194,20 @@ dataset = datasets.get_dataset('Cora')
 
 example_run_config = {
     'dataset_names': ['Cora'],
-    'samplers': ['random', 'entropy', 'degree', 'model', 'kmedoids'],
+    'samplers': ['model','pagerank', 'entropy', 'random'],
     'budget': 100,
     'seed': 3133742069,
-    'repeats': 10,
+    'repeats': 1,
     'hyperparameters':{
         'embedding_dim': [16],
         'hidden_dim_multiplier': [6],
         'dropout': [0.5],
         'distance_loss_weight': [1],
-        'train_epochs': [15,20],
+        'train_epochs': [16],
         'learning_rate': [3e-3]}}
 result = run_config(**example_run_config)
 result.to_csv("results.csv", sep=";")
-
+"""
 # prototypical
 rank = torch.tensor(list(pagerank(to_networkx(dataset)).values()))
 gpn_model = partial(GPN_Encoder,
@@ -233,7 +234,7 @@ for sampler_name in sampling.sampler.keys():
 
 result = results_gpn[sampler_name]
 result
-"""
+
 
 #embeddings = result_gcn[0]['model'](dataset.x, dataset.edge_index)
 model = results_gpn['random'][0]['model']
