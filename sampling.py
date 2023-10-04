@@ -83,28 +83,48 @@ def pagerank_sampling(n, model, dataset, classifier):
     scores, indices = torch.sort(scores, descending=True)
     return indices[:n]
 
-def model_sampling(n, model, dataset, classifier):
+def model_sampling(n, model, dataset, classifier, classifier_runs=2):
     """
     Selects vertices of a dataset using the model as classifier to be included into the test set.
     :param n: Number of samples to draw
     :param model: model
     :param dataset: Data to sample from
     :param classifier: fallback for the first few iterations
-    :param generator: unused
+    :param classifier_runs: number governing the use of the classifier, -1 means always
     :returns: Selected vertex indices
     """
-    # first two samples are drawn by a classifier
-    logits = model(dataset.x, dataset.edge_index).detach()
-    labels = (torch.from_numpy(classifier.predict(dataset.x))
-              if dataset.train_mask.sum() <= n
-              else logits.argmax(dim=1))
-    # there might be an empty (validation) class, especially during early trainning. Thus the nearest logit for each class gets assigned to that class
-    logits[dataset.train_mask] = 0 # exclude train
-    logits[dataset.test_mask] = 0 # and test
-    selected_logits = logits.argmax(dim=0)
-    for selected_class in range(len(selected_logits)):
-        label_index = selected_logits[selected_class]
-        labels[label_index] = selected_class
+    # obtain labels by eucledian distance
+    def get_classifier_logits(classifier, dataset):
+        cluster_centers = torch.from_numpy(classifier.cluster_centers_).float()
+        cluster_distances = torch.cdist(dataset.x, cluster_centers)
+        scores = torch.exp(-cluster_distances)
+        return scores / (scores.sum(dim=1).unsqueeze(-1))
+    logits = (model(dataset.x, dataset.edge_index).detach() # choose model sampling
+              if dataset.train_mask.sum() >= n*classifier_runs and classifier_runs > 0
+              else get_classifier_logits(classifier, dataset))
+    labels = logits.argmax(dim=1)
+    # there might be an empty (validation) class, especially during early trainning. Thus override k labels per class.
+    logits[dataset.train_mask] = -1 # exclude train
+    logits[dataset.test_mask] = -1 # and test from sampling
+    # set k to a sane number
+    num_vertices = dataset.val_mask.sum()
+    num_classes = dataset.num_classes
+    k = math.floor(min(num_vertices / num_classes,
+                       (n / num_classes)*4))
+    split_logits = logits.split(split_size=1, dim=1)
+    taken_indices = []
+    for class_index in range(len(split_logits)):
+        scores, indices = split_logits[class_index].sort(dim=0, descending=True)
+        #now sample k indices
+        num_sampled = 0
+        i = 0
+        while(num_sampled < k):
+            sampled_index = indices[i]
+            if(sampled_index not in taken_indices): # index isnt sampled yet
+                num_sampled += 1
+                taken_indices.append(sampled_index)
+                labels[sampled_index] = class_index
+            i+=1
     return classifier_sampling(n,
                                model,
                                dataset,
@@ -121,10 +141,11 @@ def kmedoids_sampling(n, model, dataset, classifier):
     :param generator: unused
     :returns: Selected vertex indices
     """ 
-    return classifier_sampling(n,
-                               model,
-                               dataset,
-                               torch.from_numpy(classifier.predict(dataset.x)))
+    return model_sampling(n,
+                          model,
+                          dataset,
+                          classifier,
+                          -1)
 
 
 def classifier_sampling(n, model, dataset, labels, perfect_sampling=False, oversampling_compensation=False):
@@ -147,7 +168,7 @@ def classifier_sampling(n, model, dataset, labels, perfect_sampling=False, overs
     # group indices by label and remove excluded indices
     grouped_indices = groupby(lambda x: labels[x], range(0, len(dataset.y)))
     grouped_indices = dissoc(grouped_indices, dataset.num_classes)
-    print(valmap(len, grouped_indices))
+    #print(valmap(len, grouped_indices))
     # determine samples to be drawn per class
     # determine classes that have been oversampled
     logits = model(dataset.x, dataset.edge_index).detach()

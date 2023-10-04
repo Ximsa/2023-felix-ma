@@ -16,6 +16,7 @@ import operator
 import yaml
 import numpy as np
 from functools import partial
+from itertools import takewhile
 from toolz.itertoolz import iterate, first, concat, cons
 from toolz.functoolz import thread_last, pipe
 from toolz.dicttoolz import merge, valmap, keyfilter, get_in, merge_with
@@ -63,7 +64,14 @@ def train(n, optimizer, model, dataset, early_stopping=False): #TODO: implement 
     return (accuracy(predictions, dataset.y, dataset.train_mask), # train acc
             accuracy(predictions, dataset.y, dataset.test_mask)) # test acc
 
-def run(model, dataset, sampler='model', runs=10, budget=100, seed=133742069, train_epochs=16, learning_rate=0.001):
+def run(model,
+        dataset,
+        sampler='model',
+        runs=10,
+        budget=100,
+        seed=133742069,
+        train_epochs=16,
+        learning_rate=0.001):
     """Runs experiments on given model "runs" times with the same settings
 
     :param model: Model constructor with 0 args for model construction
@@ -102,7 +110,7 @@ def run(model, dataset, sampler='model', runs=10, budget=100, seed=133742069, tr
             dataset.val_mask[sampled_indices] = False
             dataset.train_mask[sampled_indices] = True
             train_stats, test_stats = train(train_epochs, optimizer, model, dataset)
-            def combine_training_stats(x):
+            def combine_training_stats(x): # x[0] is the full training stat, x[1] the new train stat
                 return x[0] + [x[1]]
             full_train_stats = merge_with(combine_training_stats, full_train_stats, train_stats)
             full_test_stats = merge_with(combine_training_stats, full_test_stats, test_stats)
@@ -121,12 +129,13 @@ def run(model, dataset, sampler='model', runs=10, budget=100, seed=133742069, tr
         seed = random.randrange(2**31) # generate seed for next run
     return results
 
-def run_config(dataset_names, samplers, budget, seed, repeats, hyperparameters):
+def run_config(dataset_names, samplers, budget, seed, repeats, average_repeats, hyperparameters):
     """
     Runs experiments as described in given run config
     :returns: dataframe with run statistics
     """
-    results = pandas.DataFrame(columns=['dataset_name',
+    results = []
+    """pandas.DataFrame(columns=['dataset_name',
                                         'sampler_name',
                                         'embedding_dim',
                                         'hidden_dim_multiplier',
@@ -137,12 +146,14 @@ def run_config(dataset_names, samplers, budget, seed, repeats, hyperparameters):
                                         'budget',
                                         'test_accuracy',
                                         'test_macro_f1',
-                                        'test_confusion',])
+                                        'test_confusion',])"""
     for dataset_name, sampler_name in itertools.product(dataset_names, samplers):
+        print(dataset_name, sampler_name)
         dataset = datasets.get_dataset(dataset_name)
         keys, values = zip(*hyperparameters.items())
         for bundle in itertools.product(*values):
             config = dict(zip(keys, bundle))
+            print(config)
             rank = torch.tensor(list(pagerank(to_networkx(dataset)).values()))
             gpn_model = partial(GPN_Encoder,
                                 num_node_features=dataset.num_node_features,
@@ -165,20 +176,19 @@ def run_config(dataset_names, samplers, budget, seed, repeats, hyperparameters):
             # insert result into dataframe
             for result in run_results:
                 for i in range(len(result['test']['accuracy'])):
-                    row = [dataset_name,
-                           sampler_name,
-                           config['embedding_dim'],
-                           config['hidden_dim_multiplier'],
-                           config['dropout'],
-                           config['distance_loss_weight'],
-                           config['train_epochs'],
-                           config['learning_rate'],
-                           result['budget_used'][i],
-                           result['test']['accuracy'][i],
-                           result['test']['macro-f1'][i],
-                           result['test']['confusion'][i]]
-                    #print(row[:-1])
-                    results.loc[len(results)] = row
+                    row = merge({'dataset_name': dataset_name,
+                                 'sampler_name': sampler_name,
+                                 'budget': result['budget_used'][i]},
+                                config,
+                                {'test_accuracy': result['test']['accuracy'][i],
+                                 'test_macro_f1':result['test']['macro-f1'][i],
+                                 'test_confusion': result['test']['confusion'][i]})
+                    results.append(row)
+    results = pandas.DataFrame.from_records(results)
+    # check if averaging is needed
+    if average_repeats:
+        grouping = list(takewhile(lambda x: x != "test_accuracy", results.columns))
+        results = results.groupby(grouping).mean()
     return results
 
 def load_and_run_config(filename):
@@ -194,10 +204,11 @@ dataset = datasets.get_dataset('Cora')
 
 example_run_config = {
     'dataset_names': ['Cora'],
-    'samplers': ['model','pagerank', 'entropy', 'random'],
-    'budget': 100,
+    'samplers': ['model','kmedoids','pagerank','random'],
+    'budget': 140,
     'seed': 3133742069,
-    'repeats': 1,
+    'repeats': 10,
+    'average_repeats': True,
     'hyperparameters':{
         'embedding_dim': [16],
         'hidden_dim_multiplier': [6],
