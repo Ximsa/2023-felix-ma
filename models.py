@@ -76,16 +76,15 @@ class GPN_Encoder(torch.nn.Module):
         loss = F.nll_loss(F.log_softmax(prototype_probabilities, dim=1), ground_truth)
         return loss
 
-    def loss(self, dataset, probabilities):
-        ground_truth = dataset.y[dataset.train_mask]
-        train_mask = dataset.train_mask
+    def loss(self, dataset, logits, mask):
+        ground_truth = dataset.y[mask]
         num_classes = dataset.num_classes
-        self.prototypes = self.get_prototypes(ground_truth, train_mask, num_classes) # prototypes are a learnable parameter now
-        prototype_loss = self.prototype_loss(ground_truth, train_mask, num_classes)
+        self.prototypes = self.get_prototypes(ground_truth, mask, num_classes)
+        prototype_loss = self.prototype_loss(ground_truth, mask, num_classes)
         euclidean_loss = self.euclidean_loss()
         cosine_loss = self.cosine_loss()
         return prototype_loss + self.distance_loss_weight * (euclidean_loss + cosine_loss)
 
 class GCN(torch_geometric.nn.models.GCN):
-    def loss(self, dataset, probabilities):
-        return F.cross_entropy(F.softmax(probabilities[dataset.train_mask], dim=1), dataset.y[dataset.train_mask])
+    def loss(self, dataset, logits, mask):
+        return F.cross_entropy(F.softmax(logits[mask], dim=1), dataset.y[mask])

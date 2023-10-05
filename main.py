@@ -40,14 +40,62 @@ def accuracy(predictions, true_labels, mask):
             "macro-f1": f1_score(true_labels[mask], predictions[mask], average='macro'),
             "confusion": confusion_matrix(true_labels[mask], predictions[mask])}
 
-def train(n, optimizer, model, dataset, early_stopping=False): #TODO: implement early stopping
-    """Trains and alters given model for n epochs
+# TODO: finish
+def few_shot_training(n, optimizer, model, dataset):
+    """
+    Trains and alters given model using few shot learning
+
+    :param n: Number of few-shot repeats
+    :param optimizer: Optimizer
+    :param model: Model to train on
+    :param dataset: Dataset with train/validation/test split
+    :returns: Dictionary of train and test statistics
+    """
+    def get_support_query_validation_indices(dataset,
+                                             target_support_size=3,
+                                             validation_treshold=3,
+                                             query_min_count=3):
+        vertices = torch.stack([dataset.y,torch.arange(len(dataset.y))]).T[dataset.train_mask]
+        buckets = {}
+        support = []
+        query = []
+        validation = []
+        for label, index in vertices:
+            label = label.item()
+            index = index.item()
+            if label in buckets:
+                buckets[label].append(index)
+            else:
+                buckets[label] = [index]
+        for label, indices in buckets.items():
+            bucket_size = len(indices)
+            # support set ranges between 0 and 3 items
+            support_size = min(target_support_size, bucket_size)
+            # only add validation if enough samples are availible
+            validation_size = max(int(bucket_size > validation_treshold), bucket_size // 10)
+            random.shuffle(indices)
+            print(indices, bucket_size, support_size, validation_size)
+            validation += indices[:validation_size]
+            indices = indices[validation_size:]
+            # add some support indices to the query set, if query set is too small
+            temp_support = indices[:support_size] 
+            temp_query = indices[support_size:] # remainder is query set
+            if len(temp_query) < query_min_count:
+                temp_query += random.sample(temp_support,
+                                            min(len(temp_support), query_min_count-len(temp_query)))
+            support += temp_support
+            query += temp_query
+        return support, query, validation
+    pass
+
+def train(n, optimizer, model, dataset):
+    """
+    Trains and alters given model for n epochs
 
     :param n: Number of epochs
     :param optimizer: Optimizer
     :param model: Model to train on
     :param dataset: Dataset with train/validation/test split
-    :param early_stoping: stop training when accuracy gets too high to prevent overfitting
     :returns: Dictionary of train and test statistics
     """
     num_labels = len(dataset.y.unique())
@@ -55,7 +103,7 @@ def train(n, optimizer, model, dataset, early_stopping=False): #TODO: implement 
     for i in range(n):
         optimizer.zero_grad()
         logits = model(dataset.x, dataset.edge_index)
-        loss = model.loss(dataset, logits)
+        loss = model.loss(dataset, logits, dataset.train_mask)
         loss.backward()
         optimizer.step()
     model.eval()
