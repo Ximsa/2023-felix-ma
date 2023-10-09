@@ -25,6 +25,21 @@ config = {
         'train_epochs': tune.choice(range(3,10)),
         'learning_rate': tune.loguniform(1e-4,1e-2)}}
 
+config1 = {
+    'dataset_name': 'Cora',
+    'sampler': 'model',
+    'budget': 98,
+    'seed': 3133742069,
+    'runs': 3,
+    'average_repeats': True,
+    'hyperparameters':{
+        'embedding_dim': 16,
+        'hidden_dim_size': 96,
+        'dropout': 0.5,
+        'distance_loss_weight': 1,
+        'train_epochs': 4,
+        'learning_rate': 0.001,}}
+
 scheduler = ASHAScheduler(
     metric="macro-f1",
     mode="max",
@@ -54,10 +69,10 @@ def train(config):
                  **keyfilter(lambda x: x in ['train_epochs',
                                              'learning_rate'],
                              hyperparams))
-    f1s = valmap(lambda x: x['test']['macro_f1'], results)
-    session.report({"macro_f1": np.mean(f1s)})
+    print(results)
+    f1s = list(map(lambda x: x['test']['macro-f1'][-1], results)) # todo filter low budget results
+    session.report({"macro-f1": np.mean(f1s)})
     
-
 result = tune.run(train, config=config, scheduler=scheduler, num_samples=1, resources_per_trial={"cpu": 12})
 
 print(result)

@@ -304,7 +304,7 @@ def load_and_run_config(filename):
         config = yaml.load(f)
         print(config)
         return run_config(**config)
-
+"""
 dataset = datasets.get_dataset('Cora')
 
 example_run_config = {
@@ -323,7 +323,7 @@ example_run_config = {
         'learning_rate': [1e-3],}}
 result = run_config(**example_run_config)
 result.to_csv("results.csv", sep=";")
-"""
+
 # prototypical
 rank = torch.tensor(list(pagerank(to_networkx(dataset)).values()))
 gpn_model = partial(GPN_Encoder,
