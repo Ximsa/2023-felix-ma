@@ -9,13 +9,13 @@ class GPN_Encoder(torch.nn.Module):
                  num_node_features,
                  num_classes,
                  pagerank_scores,
-                 hidden_dim_multiplier = 4,
+                 hidden_dim_size = 128,
                  embedding_dim = 16,
                  dropout = 0.5,
                  distance_loss_weight = 1.0):
         super().__init__()
-        self.conv1 = GCNConv(num_node_features, embedding_dim*hidden_dim_multiplier)
-        self.conv2 = GCNConv(embedding_dim*hidden_dim_multiplier, embedding_dim)
+        self.conv1 = GCNConv(num_node_features, hidden_dim_size)
+        self.conv2 = GCNConv(hidden_dim_size, embedding_dim)
         self.dropout = dropout
         self.distance_loss_weight = distance_loss_weight
         self.pagerank_scores = pagerank_scores
@@ -76,7 +76,7 @@ class GPN_Encoder(torch.nn.Module):
         loss = F.nll_loss(F.log_softmax(prototype_logits, dim=1), ground_truth[mask])
         return loss
 
-    def loss(self, dataset, support_indices, query_indices):
+    def loss(self, dataset, logits, support_indices, query_indices):
         ground_truth = dataset.y
         num_classes = dataset.num_classes
         self.prototypes = self.get_prototypes(ground_truth, support_indices, num_classes)
@@ -86,5 +86,5 @@ class GPN_Encoder(torch.nn.Module):
         return prototype_loss + self.distance_loss_weight * (euclidean_loss + cosine_loss)
 
 class GCN(torch_geometric.nn.models.GCN):
-    def loss(self, dataset, logits, mask):
+    def loss(self, dataset, logits, support_indices, query_indices):
         return F.cross_entropy(F.softmax(logits[mask], dim=1), dataset.y[mask])

@@ -192,6 +192,7 @@ def classifier_sampling(n, model, dataset, labels, perfect_sampling=False, overs
                 lambda entropies: ((1-entropy_pagerank_balance) * normalize(entropies, dim=0, p=1)
                                    + entropy_pagerank_balance * normalize(dataset.pagerank[indices], dim=0, p=1)), # combine entropy with pagerank
                 torch.sort)
+            #sorted_indices_indices = sorted_indices_indices[torch.randperm(len(sorted_indices_indices))] # just do random sampling
             sorted_indices = torch.tensor(indices)[sorted_indices_indices]
             sampled_indices = torch.cat([sampled_indices,
                                          sorted_indices[-samples_per_class[label]:]])

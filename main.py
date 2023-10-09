@@ -15,6 +15,7 @@ import pandas
 import operator
 import yaml
 import numpy as np
+import math
 from functools import partial
 from itertools import takewhile
 from toolz.itertoolz import iterate, first, concat, cons
@@ -40,7 +41,7 @@ def accuracy(predictions, true_labels, mask):
             "macro-f1": f1_score(true_labels[mask], predictions[mask], average='macro'),
             "confusion": confusion_matrix(true_labels[mask], predictions[mask])}
 
-# TODO: finish
+# TODO: peforms worse than normal training
 def few_shot_training(n, optimizer, model, dataset):
     """
     Trains and alters given model using few shot learning
@@ -52,9 +53,18 @@ def few_shot_training(n, optimizer, model, dataset):
     :returns: Dictionary of train and test statistics
     """
     def get_support_query_validation_indices(dataset,
-                                             target_support_size=3,
-                                             validation_treshold=3,
-                                             query_min_count=3):
+                                             target_support_size=4,
+                                             validation_ratio=0.2,
+                                             query_min_count=4):
+        """
+        Samples a sensible support/query/validation split for given dataset
+
+        :param dataset: Dataset containing labels and masks
+        :param target_support_size: Support set size
+        :param validation_ratio: validation ratio per class
+        :param query_min_count: Query set size
+        :returns: Indices for support/query/validation splits
+        """
         vertices = torch.stack([dataset.y,torch.arange(len(dataset.y))]).T[dataset.train_mask]
         buckets = {}
         support = []
@@ -72,35 +82,68 @@ def few_shot_training(n, optimizer, model, dataset):
             # support set ranges between 0 and 3 items
             support_size = min(target_support_size, bucket_size)
             # only add validation if enough samples are availible
-            validation_size = max(int(bucket_size > validation_treshold), bucket_size // 10)
+            validation_size = math.floor(bucket_size * validation_ratio)
             random.shuffle(indices)
-            print(indices, bucket_size, support_size, validation_size)
-            validation += indices[:validation_size]
+            #print(indices, bucket_size, support_size, validation_size)
+            temp_validation = indices[:validation_size]
             indices = indices[validation_size:]
             # add some support indices to the query set, if query set is too small
-            temp_support = indices[:support_size] 
+            temp_support = indices[:support_size]
             temp_query = indices[support_size:] # remainder is query set
             if len(temp_query) < query_min_count:
                 temp_query += random.sample(temp_support,
                                             min(len(temp_support), query_min_count-len(temp_query)))
+            # add one support index to validation, if validation is empty
+            validation += temp_validation if len(temp_validation) > 0 else random.sample(temp_support,1)
             support += temp_support
             query += temp_query
         return support, query, validation
-    model.train()
-    acc = 0
-    for _ in range(n):
-        model.train()
-        optimizer.zero_grad()
+    
+    def resample_query_support(query_indices,support_indices):
+        """
+        resamples query and support
+        """
+        query_len = len(query_indices)
+        support_len = len(support_indices)
+        indices = list(set(query_indices + support_indices))
+        random.shuffle(indices)
+        return indices[query_len:], indices[-support_len:]
+    
+    labels = None
+    best_acc = 0
+    no_increment_count = 0
+    foo = []
+    best_model_state = model.state_dict()
+    while (n := n - 1) > 0:
+        accs = []
         support, query, validation = get_support_query_validation_indices(dataset)
-        _ = model(dataset.x, dataset.edge_index) # calculating logits updates the embeddings
-        loss = model.loss(dataset, support_indices, query_indices)
-        loss.backward()
-        optimizer.step()
-        model.eval() # todo: eval only on exit?
-        labels = model(dataset.x, dataset.edge_index).argmax(dim=1)
-        # moving average, new data is more important than old data
-        acc = (acc + accuracy_score(labels[validation], dataset.y[validation])) / 2 
-    return acc
+        acc = 0
+        for _ in range(5):
+            support, query = resample_query_support(support, query)
+            model.train()
+            optimizer.zero_grad()
+            logits = model(dataset.x, dataset.edge_index) # calculating logits updates the embeddings
+            loss = model.loss(dataset, logits, support, query)
+            loss.backward()
+            optimizer.step()
+            model.eval() # todo: eval only on exit?
+            labels = model(dataset.x, dataset.edge_index).argmax(dim=1)
+            acc = accuracy_score(labels[validation], dataset.y[validation])
+            #accs.append(accuracy_score(labels[validation], dataset.y[validation]))
+        #acc = np.mean(accs)
+        foo.append(acc)
+        if acc > best_acc:
+            best_model_state = model.state_dict()
+            best_acc = acc
+            no_increment_count = 0
+        else:
+            if no_increment_count < 4:
+                no_increment_count += 1
+            else:
+                break
+    model.load_state_dict(best_model_state)
+    return (accuracy(labels, dataset.y, dataset.train_mask), # train acc
+            accuracy(labels, dataset.y, dataset.test_mask)) # test acc
 
 def train(n, optimizer, model, dataset):
     """
@@ -116,8 +159,8 @@ def train(n, optimizer, model, dataset):
     model.train()
     for i in range(n):
         optimizer.zero_grad()
-        _ = model(dataset.x, dataset.edge_index) # getting logits also updates the embeddings
-        loss = model.loss(dataset, dataset.train_mask, dataset.train_mask) # no few-shot learning
+        logits = model(dataset.x, dataset.edge_index) # getting logits also updates the embeddings
+        loss = model.loss(dataset, logits, dataset.train_mask, dataset.train_mask) # no few-shot learning
         loss.backward()
         optimizer.step()
     model.eval()
@@ -171,7 +214,8 @@ def run(model,
             # move sampled vertices from the validation to the training set
             dataset.val_mask[sampled_indices] = False
             dataset.train_mask[sampled_indices] = True
-            train_stats, test_stats = train(train_epochs, optimizer, model, dataset)
+            train_stats, test_stats = few_shot_training(train_epochs, optimizer, model, dataset)
+            train_stats, test_stats = train(2, optimizer, model, dataset) # "smoothing"
             def combine_training_stats(x): # x[0] is the full training stat, x[1] the new train stat
                 return x[0] + [x[1]]
             full_train_stats = merge_with(combine_training_stats, full_train_stats, train_stats)
@@ -221,7 +265,7 @@ def run_config(dataset_names, samplers, budget, seed, repeats, average_repeats, 
                                 num_node_features=dataset.num_node_features,
                                 num_classes=dataset.num_classes,
                                 pagerank_scores=rank,
-                                **keyfilter(lambda x: x in ['hidden_dim_multiplier',
+                                **keyfilter(lambda x: x in ['hidden_dim_size',
                                                             'embedding_dim',
                                                             'dropout',
                                                             'distance_loss_weight'],
@@ -243,8 +287,11 @@ def run_config(dataset_names, samplers, budget, seed, repeats, average_repeats, 
                                  'budget': result['budget_used'][i]},
                                 config,
                                 {'test_accuracy': result['test']['accuracy'][i],
-                                 'test_macro_f1':result['test']['macro-f1'][i],
-                                 'test_confusion': result['test']['confusion'][i]})
+                                 'test_macro_f1': result['test']['macro-f1'][i],
+                                 'test_confusion': result['test']['confusion'][i],
+                                 'train_accuracy': result['train']['accuracy'][i],
+                                 'train_macro_f1': result['train']['macro-f1'][i],
+                                 'train_confusion': result['train']['confusion'][i]})
                     results.append(row)
     results = pandas.DataFrame.from_records(results)
     # check if averaging is needed
@@ -259,25 +306,22 @@ def load_and_run_config(filename):
         print(config)
         return run_config(**config)
 
-
-    
-
 dataset = datasets.get_dataset('Cora')
 
 example_run_config = {
     'dataset_names': ['Cora'],
-    'samplers': ['model','kmedoids','pagerank','random'],
+    'samplers': ['model'],#,'kmedoids','pagerank','random', 'entropy'],
     'budget': 140,
     'seed': 3133742069,
     'repeats': 10,
     'average_repeats': True,
     'hyperparameters':{
         'embedding_dim': [16],
-        'hidden_dim_multiplier': [6],
+        'hidden_dim_size': [128],
         'dropout': [0.5],
         'distance_loss_weight': [0.5],
         'train_epochs': [16],
-        'learning_rate': [3e-3]}}
+        'learning_rate': [1e-3]}}
 result = run_config(**example_run_config)
 result.to_csv("results.csv", sep=";")
 """
@@ -320,3 +364,24 @@ plot_embeddings(torch.cat([embeddings,prototypes]).detach(),
                 labels=torch.cat([dataset.y, torch.full([num_classes], num_classes)]))
 plot_embeddings(dataset.x, dataset.y)
 """
+
+np.mean([0.7906976744186046,
+        0.7760097919216646,
+        0.791921664626683,
+        0.8017135862913096,
+        0.795593635250918,
+        0.7711138310893513,
+        0.7662178702570379,
+        0.791921664626683,
+        0.8127294981640147,
+         0.7478580171358629])
+np.mean([0.7833537331701347,
+         0.8151774785801713,
+         0.795593635250918,
+         0.8237454100367197,
+         0.813953488372093,
+         0.780905752753978,
+         0.7980416156670747,
+         0.7906976744186046,
+         0.7894736842105263,
+         0.7980416156670747])
