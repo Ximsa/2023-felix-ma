@@ -34,10 +34,10 @@ class GPN_Encoder(torch.nn.Module):
         logits = scores / total_scores.unsqueeze(-1)
         return logits
 
-    def get_prototypes(self, labels, train_mask, num_classes):
-        # TODO: use pagerank (networkX)weights, see https://dl.acm.org/doi/pdf/10.1145/3607144
-        embeddings = self.embeddings[train_mask]
-        pagerank_scores = self.pagerank_scores[train_mask]
+    def get_prototypes(self, labels, mask, num_classes):
+        labels = labels[mask]
+        embeddings = self.embeddings[mask]
+        pagerank_scores = self.pagerank_scores[mask]
         # position unknown prototypes to the center to "force" labels away from center
         prototypes = []
         for label in range(num_classes):
@@ -67,20 +67,20 @@ class GPN_Encoder(torch.nn.Module):
         loss = torch.mean(biggest_distances)
         return loss
 
-    def prototype_loss(self, ground_truth, train_mask, num_labels):
+    def prototype_loss(self, ground_truth, mask, num_labels):
         # modeled after https://dl.acm.org/doi/pdf/10.1145/3607144, equation 3 and 4
-        prototype_distances = torch.cdist(self.embeddings[train_mask], self.prototypes)
+        prototype_distances = torch.cdist(self.embeddings[mask], self.prototypes)
         prototype_scores = torch.exp(-prototype_distances)
         prototype_total_scores = torch.sum(prototype_scores, dim=1)
-        prototype_probabilities = prototype_scores / prototype_total_scores.unsqueeze(-1)
-        loss = F.nll_loss(F.log_softmax(prototype_probabilities, dim=1), ground_truth)
+        prototype_logits = prototype_scores / prototype_total_scores.unsqueeze(-1)
+        loss = F.nll_loss(F.log_softmax(prototype_logits, dim=1), ground_truth[mask])
         return loss
 
-    def loss(self, dataset, logits, mask):
-        ground_truth = dataset.y[mask]
+    def loss(self, dataset, support_indices, query_indices):
+        ground_truth = dataset.y
         num_classes = dataset.num_classes
-        self.prototypes = self.get_prototypes(ground_truth, mask, num_classes)
-        prototype_loss = self.prototype_loss(ground_truth, mask, num_classes)
+        self.prototypes = self.get_prototypes(ground_truth, support_indices, num_classes)
+        prototype_loss = self.prototype_loss(ground_truth, query_indices, num_classes)
         euclidean_loss = self.euclidean_loss()
         cosine_loss = self.cosine_loss()
         return prototype_loss + self.distance_loss_weight * (euclidean_loss + cosine_loss)

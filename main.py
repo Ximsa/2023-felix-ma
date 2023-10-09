@@ -86,7 +86,21 @@ def few_shot_training(n, optimizer, model, dataset):
             support += temp_support
             query += temp_query
         return support, query, validation
-    pass
+    model.train()
+    acc = 0
+    for _ in range(n):
+        model.train()
+        optimizer.zero_grad()
+        support, query, validation = get_support_query_validation_indices(dataset)
+        _ = model(dataset.x, dataset.edge_index) # calculating logits updates the embeddings
+        loss = model.loss(dataset, support_indices, query_indices)
+        loss.backward()
+        optimizer.step()
+        model.eval() # todo: eval only on exit?
+        labels = model(dataset.x, dataset.edge_index).argmax(dim=1)
+        # moving average, new data is more important than old data
+        acc = (acc + accuracy_score(labels[validation], dataset.y[validation])) / 2 
+    return acc
 
 def train(n, optimizer, model, dataset):
     """
@@ -102,8 +116,8 @@ def train(n, optimizer, model, dataset):
     model.train()
     for i in range(n):
         optimizer.zero_grad()
-        logits = model(dataset.x, dataset.edge_index)
-        loss = model.loss(dataset, logits, dataset.train_mask)
+        _ = model(dataset.x, dataset.edge_index) # getting logits also updates the embeddings
+        loss = model.loss(dataset, dataset.train_mask, dataset.train_mask) # no few-shot learning
         loss.backward()
         optimizer.step()
     model.eval()
@@ -261,7 +275,7 @@ example_run_config = {
         'embedding_dim': [16],
         'hidden_dim_multiplier': [6],
         'dropout': [0.5],
-        'distance_loss_weight': [1],
+        'distance_loss_weight': [0.5],
         'train_epochs': [16],
         'learning_rate': [3e-3]}}
 result = run_config(**example_run_config)
