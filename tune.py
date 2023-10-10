@@ -73,13 +73,13 @@ def train(config):
 tuner = tune.Tuner(
         tune.with_resources(
             tune.with_parameters(train),
-            resources={"cpu": 1, "gpu": 0}
+            resources={"cpu": 2, "gpu": 0}
         ),
         tune_config=tune.TuneConfig(
             metric="macro-f1",
             mode="max",
             scheduler=scheduler,
-            num_samples=1000,
+            num_samples=8000,
         ),
         param_space=config,
     )

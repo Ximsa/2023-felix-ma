@@ -1,0 +1,56 @@
+Executable python3.9 tune.py running on 80 cores with 40 threads
+python3.9 tune.py
+2023-10-10 14:16:11,186	INFO worker.py:1642 -- Started a local Ray instance.
+2023-10-10 14:16:13,138	INFO tune.py:228 -- Initializing Ray automatically. For cluster usage or custom Ray initialization, call `ray.init(...)` before `Tuner(...)`.
+2023-10-10 14:16:13,153	INFO tune.py:654 -- [output] This will use the new output engine with verbosity 1. To disable the new output and use the legacy output engine, set the environment variable RAY_AIR_NEW_OUTPUT=0. For more information, please see https://github.com/ray-project/ray/issues/36949
+[2m[36m(train pid=102020)[0m Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.x
+[2m[36m(train pid=102020)[0m Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.tx
+[2m[36m(train pid=102015)[0m Using existing file ind.cora.x
+[2m[36m(train pid=102020)[0m Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.allx
+[2m[36m(train pid=102016)[0m Using existing file ind.cora.tx
+[2m[36m(train pid=101789)[0m Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.y
+[2m[36m(train pid=102051)[0m Using existing file ind.cora.allx
+[2m[36m(train pid=102020)[0m Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.ty
+[2m[36m(train pid=102020)[0m Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.ally
+[2m[36m(train pid=102020)[0m Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.graph
+[2m[36m(train pid=102020)[0m Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.test.index
+[2m[36m(train pid=102052)[0m Using existing file ind.cora.ty
+[2m[36m(train pid=102052)[0m Using existing file ind.cora.ally
+[2m[36m(train pid=102020)[0m Processing...
+[2m[36m(train pid=102052)[0m Using existing file ind.cora.test.index
+[2m[36m(train pid=101789)[0m Done!
+[2m[36m(train pid=102032)[0m Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.x[32m [repeated 11x across cluster] (Ray deduplicates logs by default. Set RAY_DEDUP_LOGS=0 to disable log deduplication, or see https://docs.ray.io/en/master/ray-observability/ray-logging.html#log-deduplication for more options.)[0m
+slurmstepd: error: *** JOB 22696224 ON uc2n549 CANCELLED AT 2023-10-10T14:53:44 DUE TO TIME LIMIT ***
+*** SIGTERM received at time=1696942424 on cpu 31 ***
+PC: @     0x151d183d479a  (unknown)  pthread_cond_timedwait@@GLIBC_2.3.2
+    @     0x151d183d8ce0  (unknown)  (unknown)
+[2023-10-10 14:53:44,864 E 95507 95507] logging.cc:361: *** SIGTERM received at time=1696942424 on cpu 31 ***
+[2023-10-10 14:53:44,865 E 95507 95507] logging.cc:361: PC: @     0x151d183d479a  (unknown)  pthread_cond_timedwait@@GLIBC_2.3.2
+[2023-10-10 14:53:44,865 E 95507 95507] logging.cc:361:     @     0x151d183d8ce0  (unknown)  (unknown)
+[2m[36m(train pid=102037)[0m Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.tx[32m [repeated 21x across cluster][0m
+[2m[36m(train pid=102051)[0m Using existing file ind.cora.x[32m [repeated 27x across cluster][0m
+[2m[36m(train pid=102036)[0m Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.allx[32m [repeated 38x across cluster][0m
+[2m[36m(train pid=102051)[0m Using existing file ind.cora.tx[32m [repeated 17x across cluster][0m
+[2m[36m(train pid=102027)[0m Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.y[32m [repeated 39x across cluster][0m
+[2m[36m(train pid=102015)[0m Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.ty[32m [repeated 38x across cluster][0m
+[2m[36m(train pid=102051)[0m Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.ally[32m [repeated 37x across cluster][0m
+[2m[36m(train pid=102049)[0m Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.graph[32m [repeated 39x across cluster][0m
+[2m[36m(train pid=102026)[0m Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.test.index[32m [repeated 38x across cluster][0m
+[2m[36m(train pid=102049)[0m Using existing file ind.cora.ally
+[2m[36m(train pid=102052)[0m Processing...[32m [repeated 39x across cluster][0m
+[2m[36m(train pid=102051)[0m Done![32m [repeated 39x across cluster][0m
+
+============================= JOB FEEDBACK =============================
+
+NodeName=uc2n549
+Job ID: 22696224
+Cluster: uc2
+User/Group: ul_rvl52/ul_student
+State: TIMEOUT (exit code 0)
+Nodes: 1
+Cores per node: 80
+CPU Utilized: 1-05:15:41
+CPU Efficiency: 54.39% of 2-05:48:00 core-walltime
+Job Wall-clock time: 00:40:21
+Memory Utilized: 24.08 GB
+Memory Efficiency: 27.40% of 87.89 GB
