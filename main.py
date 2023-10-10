@@ -135,7 +135,7 @@ def few_shot_training(n, optimizer, model, dataset):
             best_acc = acc
             no_increment_count = 0
         else:
-            if no_increment_count < 4:
+            if no_increment_count < 5:
                 no_increment_count += 1
             else:
                 break
@@ -233,97 +233,8 @@ def run(model,
         seed = random.randrange(2**31) # generate seed for next run
     return results
 
-def run_config(dataset_names, samplers, budget, seed, repeats, average_repeats, hyperparameters):
-    """
-    Runs experiments as described in given run config
-    :returns: dataframe with run statistics
-    """
-    results = []
-    """pandas.DataFrame(columns=['dataset_name',
-                                        'sampler_name',
-                                        'embedding_dim',
-                                        'hidden_dim_multiplier',
-                                        'dropout',
-                                        'distance_loss_weight',
-                                        'train_epochs',
-                                        'learning_rate',
-                                        'budget',
-                                        'test_accuracy',
-                                        'test_macro_f1',
-                                        'test_confusion',])"""
-    for dataset_name, sampler_name in itertools.product(dataset_names, samplers):
-        print(dataset_name, sampler_name)
-        dataset = datasets.get_dataset(dataset_name)
-        keys, values = zip(*hyperparameters.items())
-        for bundle in itertools.product(*values):
-            config = dict(zip(keys, bundle))
-            print(config)
-            rank = torch.tensor(list(pagerank(to_networkx(dataset)).values()))
-            gpn_model = partial(GPN_Encoder,
-                                num_node_features=dataset.num_node_features,
-                                num_classes=dataset.num_classes,
-                                pagerank_scores=rank,
-                                **keyfilter(lambda x: x in ['hidden_dim_size',
-                                                            'embedding_dim',
-                                                            'dropout',
-                                                            'distance_loss_weight'],
-                                            config))
-            run_results = run(model=gpn_model,
-                              dataset=dataset,
-                              sampler=sampler_name,
-                              runs=repeats,
-                              budget=budget,
-                              seed=seed,
-                              **keyfilter(lambda x: x in ['train_epochs',
-                                                          'learning_rate'],
-                                          config))
-            # insert result into dataframe
-            for result in run_results:
-                for i in range(len(result['test']['accuracy'])):
-                    row = merge({'dataset_name': dataset_name,
-                                 'sampler_name': sampler_name,
-                                 'budget': result['budget_used'][i]},
-                                config,
-                                {'test_accuracy': result['test']['accuracy'][i],
-                                 'test_macro_f1': result['test']['macro-f1'][i],
-                                 #'test_confusion': result['test']['confusion'][i],
-                                 'train_accuracy': result['train']['accuracy'][i],
-                                 'train_macro_f1': result['train']['macro-f1'][i],
-                                 #'train_confusion': result['train']['confusion'][i]
-                                 })
-                    results.append(row)
-    results = pandas.DataFrame.from_records(results)
-    # check if averaging is needed
-    if average_repeats:
-        grouping = list(takewhile(lambda x: x != "test_accuracy", results.columns))
-        results = results.groupby(grouping).agg(["mean", "std"])
-    return results
 
-def load_and_run_config(filename):
-    with open(filename, "r") as f:
-        config = yaml.load(f)
-        print(config)
-        return run_config(**config)
 """
-dataset = datasets.get_dataset('Cora')
-
-example_run_config = {
-    'dataset_names': ['Cora'],
-    'samplers': ['model'],#,'kmedoids','pagerank','random'],
-    'budget': 140,
-    'seed': 3133742069,
-    'repeats': 1,
-    'average_repeats': True,
-    'hyperparameters':{
-        'embedding_dim': [16],
-        'hidden_dim_size': [128],
-        'dropout': [0.5],
-        'distance_loss_weight': [0.5],
-        'train_epochs': [5],
-        'learning_rate': [1e-3],}}
-result = run_config(**example_run_config)
-result.to_csv("results.csv", sep=";")
-
 # prototypical
 rank = torch.tensor(list(pagerank(to_networkx(dataset)).values()))
 gpn_model = partial(GPN_Encoder,
