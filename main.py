@@ -218,7 +218,7 @@ def run(model,
                 return x[0] + [x[1]]
             full_train_stats = merge_with(combine_training_stats, full_train_stats, train_stats)
             full_test_stats = merge_with(combine_training_stats, full_test_stats, test_stats)
-        print(full_test_stats['accuracy'][-1])
+        #print(full_test_stats['accuracy'][-1])
         return {"budget_used": budget_history,
                 "train": full_train_stats,
                 "test": full_test_stats}

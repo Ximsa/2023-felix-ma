@@ -23,7 +23,7 @@ config = {
         'dropout': tune.uniform(0.2,0.8),
         'distance_loss_weight': tune.loguniform(0.25,4),
         'train_epochs': tune.choice(range(3,10)),
-        'learning_rate': tune.loguniform(1e-4,1e-2)}}
+        'learning_rate': tune.loguniform(1e-3,1e-2)}}
 
 config1 = {
     'dataset_name': 'Cora',
@@ -41,9 +41,7 @@ config1 = {
         'learning_rate': 0.001,}}
 
 scheduler = ASHAScheduler(
-    metric="macro-f1",
-    mode="max",
-    max_t=100,
+    max_t=1,
     grace_period=1,
     reduction_factor=2)
 
@@ -69,15 +67,20 @@ def train(config):
                  **keyfilter(lambda x: x in ['train_epochs',
                                              'learning_rate'],
                              hyperparams))
-    print(results)
-    f1s = list(map(lambda x: x['test']['macro-f1'][-1], results)) # todo filter low budget results
-    session.report({"macro-f1": np.mean(f1s)})
-    
-result = tune.run(train, config=config, scheduler=scheduler, num_samples=1, resources_per_trial={"cpu": 12})
+    f1s = list(map(lambda x: x['test']['macro-f1'][-1], results))
+    return {"macro-f1": np.mean(f1s)}
 
-print(result)
-print(result.get_all_configs())
-print(result.get_best_config())
-result.get_dataframe().to_csv('raytune_results.csv', sep=";")
-
-
+tuner = tune.Tuner(
+        tune.with_resources(
+            tune.with_parameters(train),
+            resources={"cpu": 1, "gpu": 0}
+        ),
+        tune_config=tune.TuneConfig(
+            metric="macro-f1",
+            mode="max",
+            scheduler=scheduler,
+            num_samples=1000,
+        ),
+        param_space=config,
+    )
+result = tuner.fit()
