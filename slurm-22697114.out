@@ -1,0 +1,61 @@
+Executable python3.9 tune.py running on 80 cores with 40 threads
+python3.9 tune.py
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.x
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.tx
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.allx
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.y
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.ty
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.ally
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.graph
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.cora.test.index
+Processing...
+Done!
+2700 jobs to be started
+slurmstepd: error: *** JOB 22697114 ON uc2n426 CANCELLED AT 2023-10-10T21:38:39 DUE TO TIME LIMIT ***
+Process ForkPoolWorker-16:
+Traceback (most recent call last):
+  File "/home/ul/ul_student/ul_rvl52/.local/lib/python3.9/site-packages/multiprocess/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/home/ul/ul_student/ul_rvl52/.local/lib/python3.9/site-packages/multiprocess/queues.py", line 380, in put
+    self._writer.send_bytes(obj)
+  File "/home/ul/ul_student/ul_rvl52/.local/lib/python3.9/site-packages/multiprocess/connection.py", line 203, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/home/ul/ul_student/ul_rvl52/.local/lib/python3.9/site-packages/multiprocess/connection.py", line 407, in _send_bytes
+    self._send(header)
+  File "/home/ul/ul_student/ul_rvl52/.local/lib/python3.9/site-packages/multiprocess/connection.py", line 371, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ul/ul_student/ul_rvl52/.local/lib/python3.9/site-packages/multiprocess/process.py", line 315, in _bootstrap
+    self.run()
+  File "/home/ul/ul_student/ul_rvl52/.local/lib/python3.9/site-packages/multiprocess/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ul/ul_student/ul_rvl52/.local/lib/python3.9/site-packages/multiprocess/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/home/ul/ul_student/ul_rvl52/.local/lib/python3.9/site-packages/multiprocess/queues.py", line 380, in put
+    self._writer.send_bytes(obj)
+  File "/home/ul/ul_student/ul_rvl52/.local/lib/python3.9/site-packages/multiprocess/connection.py", line 203, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/home/ul/ul_student/ul_rvl52/.local/lib/python3.9/site-packages/multiprocess/connection.py", line 407, in _send_bytes
+    self._send(header)
+  File "/home/ul/ul_student/ul_rvl52/.local/lib/python3.9/site-packages/multiprocess/connection.py", line 371, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+
+============================= JOB FEEDBACK =============================
+
+NodeName=uc2n426
+Job ID: 22697114
+Cluster: uc2
+User/Group: ul_rvl52/ul_student
+State: TIMEOUT (exit code 0)
+Nodes: 1
+Cores per node: 80
+CPU Utilized: 00:00:49
+CPU Efficiency: 0.01% of 11-02:53:20 core-walltime
+Job Wall-clock time: 03:20:10
+Memory Utilized: 35.07 GB
+Memory Efficiency: 39.90% of 87.89 GB

@@ -229,8 +229,6 @@ def run(model,
         np.random.seed(seed)
         random.seed(seed)
         dataset.train_mask, dataset.val_mask, dataset.test_mask = datasets.create_split(dataset, seed=seed) # update splits with given seed
-        m = model()
-        m.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
         results.append(run_once(model(), copy.deepcopy(dataset), budget, learning_rate))
         seed = random.randrange(2**31) # generate seed for next run
     return results
