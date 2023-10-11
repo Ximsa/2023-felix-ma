@@ -66,7 +66,7 @@ def run_config(dataset_names, samplers, budget, seed, repeats, average_repeats, 
                              })
                 intermediate_results.append(row)
         return intermediate_results
-    torch.set_num_threads(1) # limit torch to 2 threads for multiprocessing efficiency increase
+    torch.set_num_threads(1) # limit torch to 1 thread for multiprocessing efficiency increase
     results = []
     funs = []
     # queue up jobs
@@ -111,17 +111,17 @@ example_run_config = {
 config = {
     'dataset_names': ['Cora'],
     'samplers': ['model'],
-    'budget': 140,
+    'budget': 98,
     'seed': 3133742069,
     'repeats': 10,
     'average_repeats': True,
     'hyperparameters':{
         'embedding_dim': [16,20,24],
         'hidden_dim_size': [128,196,256],
-        'dropout': [0.2,0.4,0.6,0.8],
-        'distance_loss_weight': [0.25, 0.5, 1, 2, 4],
+        'dropout': [0.4,0.6,0.8],
+        'distance_loss_weight': [0.25, 0.5, 1, 2],
         'train_epochs': [4,6,8],
-        'learning_rate': [1/100,1/200,1/500,1/1000,1/2000]}}
+        'learning_rate': [1/100,1/200,1/500,1/1000]}}
 
 result = run_config(**config)
 result.to_csv("results.csv", sep=";")

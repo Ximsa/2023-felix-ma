@@ -118,8 +118,8 @@ def few_shot_training(n, optimizer, model, dataset):
         accs = []
         support, query, validation = get_support_query_validation_indices(dataset)
         acc = 0
+        model.train()
         for _ in range(n):
-            model.train()
             support, query = resample_query_support(support, query)
             optimizer.zero_grad()
             logits = model(dataset.x, dataset.edge_index) # calculating logits updates the embeddings
@@ -218,7 +218,7 @@ def run(model,
                 return x[0] + [x[1]]
             full_train_stats = merge_with(combine_training_stats, full_train_stats, train_stats)
             full_test_stats = merge_with(combine_training_stats, full_test_stats, test_stats)
-        #print(full_test_stats['accuracy'][-1])
+        print(full_test_stats['accuracy'][-1])
         return {"budget_used": budget_history,
                 "train": full_train_stats,
                 "test": full_test_stats}
@@ -229,6 +229,8 @@ def run(model,
         np.random.seed(seed)
         random.seed(seed)
         dataset.train_mask, dataset.val_mask, dataset.test_mask = datasets.create_split(dataset, seed=seed) # update splits with given seed
+        m = model()
+        m.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
         results.append(run_once(model(), copy.deepcopy(dataset), budget, learning_rate))
         seed = random.randrange(2**31) # generate seed for next run
     return results
