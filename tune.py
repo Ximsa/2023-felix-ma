@@ -1,6 +1,8 @@
 from toolz.dicttoolz import valmap, keyfilter
 
+import time
 import torch
+torch.cuda.is_available = lambda : False # for multiprocessing to work
 import itertools
 import pandas
 import multiprocess
@@ -19,10 +21,33 @@ import datasets
 import main
 
 
-def run_funs_parallel(funs):
-    with multiprocess.Pool(processes=multiprocess.cpu_count()) as pool:
-        actions = [pool.apply_async(fun) for fun in funs]
-        return [action.get() for action in actions]
+def run_funs_parallel(funs, n_threads=None):
+    """
+    runs given functions in parallel and returns their results in a list
+    
+    :param n_threads: number of threads to be used. negative means all threads, 1 disables multiprocessing
+    :return list of evaled funs
+    """
+    if n_threads != 1:
+        with multiprocess.Pool(processes=n_threads) as pool:
+            actions = [pool.apply_async(fun) for fun in funs]
+            num_completed = 0
+            last_num_completed = -1
+            while num_completed != len(actions):
+                num_completed = sum([action.ready() for action in actions])
+                if num_completed > last_num_completed:
+                    print(str(num_completed) + "\t of " + str(len(actions)))
+                    last_num_completed = num_completed
+                time.sleep(1)
+            return [action.get() for action in actions]
+    else: # just run sequentially
+        i = 0
+        result = []
+        for fun in funs:
+            result.append(fun())
+            print(str(i) + "\t of " + str(len(funs)))
+            i += 1
+        return result
 
 def run_config(dataset_names, samplers, budget, seed, repeats, average_repeats, hyperparameters):
     """
@@ -98,7 +123,7 @@ example_run_config = {
     'samplers': ['model','kmedoids'],#,'kmedoids','pagerank','random'],
     'budget': 14,
     'seed': 3133742069,
-    'repeats': 2,
+    'repeats': 1,
     'average_repeats': True,
     'hyperparameters':{
         'embedding_dim': [2,16],
@@ -111,19 +136,17 @@ example_run_config = {
 config = {
     'dataset_names': ['Cora'],
     'samplers': ['model'],
-    'budget': 98,
+    'budget': 140,
     'seed': 3133742069,
     'repeats': 10,
     'average_repeats': True,
     'hyperparameters':{
-        'embedding_dim': [16,20,24],
-        'hidden_dim_size': [128,196,256],
-        'dropout': [0.4,0.6,0.8],
-        'distance_loss_weight': [0.25, 0.5, 1, 2],
-        'train_epochs': [4,6,8],
-        'learning_rate': [1/100,1/200,1/500,1/1000]}}
+        'embedding_dim': [16],
+        'hidden_dim_size': [128],
+        'dropout': [0.5],
+        'distance_loss_weight': [1],
+        'train_epochs': [3,4,5,6,7,8],
+        'learning_rate': [0.00025,0.0005,0.001,0.0025,0.005]}}
 
 result = run_config(**config)
 result.to_csv("results.csv", sep=";")
-
-

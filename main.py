@@ -112,7 +112,6 @@ def few_shot_training(n, optimizer, model, dataset):
     labels = None
     best_acc = 0
     no_increment_count = 0
-    foo = []
     best_model_state = model.state_dict()
     for _ in range(10):
         accs = []
@@ -129,7 +128,6 @@ def few_shot_training(n, optimizer, model, dataset):
         model.eval()
         labels = model(dataset.x, dataset.edge_index).argmax(dim=1)
         acc = accuracy_score(labels[validation], dataset.y[validation])
-        foo.append(acc)
         if acc > best_acc:
             best_model_state = model.state_dict()
             best_acc = acc
@@ -212,6 +210,7 @@ def run(model,
             # move sampled vertices from the validation to the training set
             dataset.val_mask[sampled_indices] = False
             dataset.train_mask[sampled_indices] = True
+            # TODO: apply label propagation, remove uncertain labels
             train_stats, test_stats = few_shot_training(train_epochs, optimizer, model, dataset)
             #train_stats, test_stats = train(1, optimizer, model, dataset) # "smoothing"
             def combine_training_stats(x): # x[0] is the full training stat, x[1] the new train stat
@@ -229,7 +228,8 @@ def run(model,
         np.random.seed(seed)
         random.seed(seed)
         dataset.train_mask, dataset.val_mask, dataset.test_mask = datasets.create_split(dataset, seed=seed) # update splits with given seed
-        results.append(run_once(model(), copy.deepcopy(dataset), budget, learning_rate))
+        m = model().to("cpu")
+        results.append(run_once(m, copy.deepcopy(dataset), budget, learning_rate))
         seed = random.randrange(2**31) # generate seed for next run
     return results
 
