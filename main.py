@@ -3,7 +3,9 @@ import torch
 import torch.nn.functional as F
 from torch_geometric.datasets import Planetoid
 from torch_geometric.utils import to_networkx
+from torch_geometric.nn import LabelPropagation
 from networkx import pagerank
+from scipy.stats import entropy
 from sklearn_extra.cluster import KMedoids
 from sklearn.decomposition import PCA
 from sklearn.metrics import f1_score, confusion_matrix, accuracy_score
@@ -64,7 +66,7 @@ def few_shot_training(n, optimizer, model, dataset):
         :param validation_ratio: validation ratio per class
         :param query_min_count: Query set size
         :returns: Indices for support/query/validation splits
-        """
+        """        
         vertices = torch.stack([dataset.y,torch.arange(len(dataset.y))]).T[dataset.train_mask]
         buckets = {}
         support = []
@@ -99,7 +101,7 @@ def few_shot_training(n, optimizer, model, dataset):
             query += temp_query
         return support, query, validation
     
-    def resample_query_support(query_indices,support_indices):
+    def resample_query_support(query_indices, support_indices):
         """
         resamples query and support
         """
@@ -113,13 +115,13 @@ def few_shot_training(n, optimizer, model, dataset):
     best_acc = 0
     no_increment_count = 0
     best_model_state = model.state_dict()
+    support, query, validation = get_support_query_validation_indices(dataset)
     for _ in range(10):
         accs = []
-        support, query, validation = get_support_query_validation_indices(dataset)
         acc = 0
         model.train()
         for _ in range(n):
-            support, query = resample_query_support(support, query)
+            #support, query = resample_query_support(support, query)
             optimizer.zero_grad()
             logits = model(dataset.x, dataset.edge_index) # calculating logits updates the embeddings
             loss = model.loss(dataset, logits, support, query)
@@ -133,7 +135,7 @@ def few_shot_training(n, optimizer, model, dataset):
             best_acc = acc
             no_increment_count = 0
         else:
-            if no_increment_count < 5:
+            if no_increment_count < 3:
                 no_increment_count += 1
             else:
                 break
@@ -152,11 +154,12 @@ def train(n, optimizer, model, dataset):
     :returns: Dictionary of train and test statistics
     """
     num_labels = len(dataset.y.unique())
+    train_prop_mask = torch.logical_or(dataset.train_mask, dataset.propagated_mask)
     model.train()
     for i in range(n):
         optimizer.zero_grad()
         logits = model(dataset.x, dataset.edge_index) # getting logits also updates the embeddings
-        loss = model.loss(dataset, logits, dataset.train_mask, dataset.train_mask) # no few-shot learning
+        loss = model.loss(dataset, logits, train_prop_mask, train_prop_mask) # no few-shot learning
         loss.backward()
         optimizer.step()
     model.eval()
@@ -164,6 +167,22 @@ def train(n, optimizer, model, dataset):
     predictions = torch.argmax(logits, dim=1)
     return (accuracy(predictions, dataset.y, dataset.train_mask), # train acc
             accuracy(predictions, dataset.y, dataset.test_mask)) # test acc
+
+def label_propagation(model, dataset, steps=2, uncertainty_threshold = 0.0):
+    """
+    Propagates trainig labels and adds their labels to y, modifies dataset
+    """
+    uncertainty_threshold = 1.0 / dataset.train_mask.sum()
+    propagator = LabelPropagation(num_layers=steps, alpha=1)
+    logits = propagator(dataset.ground_truth, dataset.edge_index, mask=dataset.train_mask)
+    propagated_logits = logits.nonzero(as_tuple=True)[0]
+    labels = logits.argmax(dim=-1)
+    model_logits = model(dataset.x, dataset.edge_index).T.detach()
+    normalized_uncertainty_scores = torch.from_numpy(entropy(model_logits) / math.log(dataset.num_classes))
+    dataset.propagated_mask[propagated_logits] = True
+    dataset.propagated_mask[normalized_uncertainty_scores < uncertainty_threshold] = False
+    dataset.y[propagated_logits] = labels[propagated_logits]
+    print("Propagated", len(propagated_logits), "labels\twrong samples:", (dataset.y != dataset.ground_truth).sum(), "\t", uncertainty_threshold)
 
 def run(model,
         dataset,
@@ -187,12 +206,7 @@ def run(model,
     """
     def run_once(model, dataset, budget, learning_rate):
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=5e-4)
-        classifier = cond(sampler, # initialize classifier if needed
-                          ("kmedoids", "model"), lambda: KMedoids(
-                              n_clusters=dataset.num_classes,
-                              init='k-medoids++').fit(
-                                  dataset.x[torch.logical_or(dataset.train_mask,dataset.val_mask)]),
-                          lambda: None)()
+        classifier = None
         sampler_fun = sampling.sampler[sampler]
         full_train_stats = {"accuracy": [],
                             "macro-f1": [],
@@ -207,12 +221,15 @@ def run(model,
             sampled_indices = sampler_fun(min(budget, dataset.num_classes), model, dataset, classifier)
             budget -= len(sampled_indices)
             budget_history.append(initial_budget - budget)
-            # move sampled vertices from the validation to the training set
+            # move sampled vertices from the validation to the training set, also restore propagated indices if applicable
             dataset.val_mask[sampled_indices] = False
             dataset.train_mask[sampled_indices] = True
-            # TODO: apply label propagation, remove uncertain labels
-            train_stats, test_stats = few_shot_training(train_epochs, optimizer, model, dataset)
-            #train_stats, test_stats = train(1, optimizer, model, dataset) # "smoothing"
+            dataset.y[dataset.train_mask] = dataset.ground_truth[dataset.train_mask]
+            # apply label propagation
+            label_propagation(model, dataset)
+            # perform training
+            # _, _ = few_shot_training(train_epochs, optimizer, model, dataset)
+            train_stats, test_stats = train(train_epochs, optimizer, model, dataset)
             def combine_training_stats(x): # x[0] is the full training stat, x[1] the new train stat
                 return x[0] + [x[1]]
             full_train_stats = merge_with(combine_training_stats, full_train_stats, train_stats)
@@ -228,7 +245,7 @@ def run(model,
         np.random.seed(seed)
         random.seed(seed)
         dataset.train_mask, dataset.val_mask, dataset.test_mask = datasets.create_split(dataset, seed=seed) # update splits with given seed
-        m = model().to("cpu")
+        m = model()
         results.append(run_once(m, copy.deepcopy(dataset), budget, learning_rate))
         seed = random.randrange(2**31) # generate seed for next run
     return results

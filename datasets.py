@@ -62,8 +62,11 @@ def get_dataset(dataset_name):
     dataset = load_function(root=dataset_location, name=dataset_name)[0]
     dataset.y = torch.flatten(dataset.y)
     dataset.train_mask, dataset.val_mask, dataset.test_mask = create_split(dataset)
+    dataset.propagated_mask = torch.full_like(dataset.y, False, dtype=torch.bool)
     dataset.num_classes = len(dataset.y.unique())
     dataset.pagerank = torch.tensor(list(pagerank(to_networkx(dataset)).values()))
+    dataset.ground_truth = torch.clone(dataset.y)
+    
     return dataset
 
 def get_homophily(dataset):

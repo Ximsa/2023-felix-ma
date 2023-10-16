@@ -91,7 +91,6 @@ def run_config(dataset_names, samplers, budget, seed, repeats, average_repeats, 
                              })
                 intermediate_results.append(row)
         return intermediate_results
-    torch.set_num_threads(1) # limit torch to 1 thread for multiprocessing efficiency increase
     results = []
     funs = []
     # queue up jobs
@@ -102,7 +101,8 @@ def run_config(dataset_names, samplers, budget, seed, repeats, average_repeats, 
             config = dict(zip(keys, bundle))
             funs.append(partial(run_one_experiment, dataset, dataset_name, sampler_name, config))
     print(str(len(funs)) +" jobs to be started")
-    results.append(run_funs_parallel(funs))
+    torch.set_num_threads(12) # limit torch to 1 thread for multiprocessing efficiency increase
+    results.append(run_funs_parallel(funs, 1))
     results = pandas.DataFrame.from_records(np.array(results).flatten())
     # check if averaging is needed
     if average_repeats:
@@ -145,8 +145,8 @@ config = {
         'hidden_dim_size': [128],
         'dropout': [0.5],
         'distance_loss_weight': [1],
-        'train_epochs': [3,4,5,6,7,8],
-        'learning_rate': [0.00025,0.0005,0.001,0.0025,0.005]}}
+        'train_epochs': [16],
+        'learning_rate': [0.004]}}
 
 result = run_config(**config)
 result.to_csv("results.csv", sep=";")

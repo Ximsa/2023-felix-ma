@@ -41,8 +41,8 @@ def entropy_sampling(n, model, dataset, classifier):
     :param generator: unused
     :returns: Selected vertex indices
     """
-    probabilities = model(dataset.x, dataset.edge_index)
-    scores = pipe(probabilities.T.detach(),
+    logits = model(dataset.x, dataset.edge_index)
+    scores = pipe(logits.T.detach(),
                   entropy,
                   torch.from_numpy)
     exclude_mask = torch.logical_or(dataset.train_mask,
@@ -85,7 +85,7 @@ def pagerank_sampling(n, model, dataset, classifier):
     scores, indices = torch.sort(scores, descending=True)
     return indices[:n]
 
-def model_sampling(n, model, dataset, classifier, random_treshold=42):
+def model_sampling(n, model, dataset, classifier, random_treshold=36):
     """
     Selects vertices of a dataset using the model as classifier to be included into the test set.
     :param n: Number of samples to draw
@@ -145,7 +145,7 @@ def kmedoids_sampling(n, model, dataset, classifier):
                           -1)
 
 
-def classifier_sampling(n, model, dataset, labels, perfect_sampling=False, oversampling_compensation=False):
+def classifier_sampling(n, model, dataset, labels):
     """
     Selects vertices of a dataset using the labels from a classifier,
     which are used for increasing diversity.
