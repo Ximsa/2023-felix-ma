@@ -76,7 +76,9 @@ class GPN_Encoder(torch.nn.Module):
         loss = F.nll_loss(F.log_softmax(prototype_logits, dim=1), ground_truth[mask])
         return loss
 
-    def loss(self, dataset, logits, support_indices, query_indices):
+    def loss(self, dataset, logits, support_indices, query_indices=None):
+        if query_indices is None:
+            query_indices = support_indices
         ground_truth = dataset.y
         num_classes = dataset.num_classes
         self.prototypes = self.get_prototypes(ground_truth, support_indices, num_classes)

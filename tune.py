@@ -2,7 +2,7 @@ from toolz.dicttoolz import valmap, keyfilter
 
 import time
 import torch
-torch.cuda.is_available = lambda : False # for multiprocessing to work
+#torch.cuda.is_available = lambda : False # for multiprocessing to work
 import itertools
 import pandas
 import multiprocess
@@ -145,8 +145,8 @@ config = {
         'hidden_dim_size': [128],
         'dropout': [0.5],
         'distance_loss_weight': [1],
-        'train_epochs': [16],
-        'learning_rate': [0.004]}}
+        'train_epochs': [10],
+        'learning_rate': [0.003]}}
 
 result = run_config(**config)
 result.to_csv("results.csv", sep=";")

@@ -43,7 +43,6 @@ def accuracy(predictions, true_labels, mask):
             "macro-f1": f1_score(true_labels[mask], predictions[mask], average='macro'),
             "confusion": confusion_matrix(true_labels[mask], predictions[mask])}
 
-# TODO: peforms worse than normal training
 def few_shot_training(n, optimizer, model, dataset):
     """
     Trains and alters given model using few shot learning
@@ -54,23 +53,18 @@ def few_shot_training(n, optimizer, model, dataset):
     :param dataset: Dataset with train/validation/test split
     :returns: Dictionary of train and test statistics
     """
-    def get_support_query_validation_indices(dataset,
-                                             target_support_size=4,
-                                             validation_ratio=0.2,
-                                             query_min_count=4):
+    def get_train_validation_indices(dataset, validation_ratio=0.2):
         """
-        Samples a sensible support/query/validation split for given dataset
+        Samples a sensible train/validation split for given dataset
 
         :param dataset: Dataset containing labels and masks
-        :param target_support_size: Support set size
         :param validation_ratio: validation ratio per class
-        :param query_min_count: Query set size
-        :returns: Indices for support/query/validation splits
-        """        
-        vertices = torch.stack([dataset.y,torch.arange(len(dataset.y))]).T[dataset.train_mask]
+        :returns: indices for support/query/validation splits, support and query are further split by classes
+        """
+        train_prop_mask = torch.logical_or(dataset.train_mask, dataset.propagated_mask)
+        vertices = torch.stack([dataset.y,torch.arange(len(dataset.y))]).T[train_prop_mask]
         buckets = {}
-        support = []
-        query = []
+        training = []
         validation = []
         for label, index in vertices:
             label = label.item()
@@ -81,52 +75,28 @@ def few_shot_training(n, optimizer, model, dataset):
                 buckets[label] = [index]
         for label, indices in buckets.items():
             bucket_size = len(indices)
-            # support set ranges between 0 and 3 items
-            support_size = min(target_support_size, bucket_size)
             # only add validation if enough samples are availible
-            validation_size = math.floor(bucket_size * validation_ratio)
+            validation_size = math.ceil((bucket_size - 1) * validation_ratio)
             random.shuffle(indices)
-            #print(indices, bucket_size, support_size, validation_size)
-            temp_validation = indices[:validation_size]
-            indices = indices[validation_size:]
-            # add some support indices to the query set, if query set is too small
-            temp_support = indices[:support_size]
-            temp_query = indices[support_size:] # remainder is query set
-            if len(temp_query) < query_min_count:
-                temp_query += random.sample(temp_support,
-                                            min(len(temp_support), query_min_count-len(temp_query)))
-            # add one support index to validation, if validation is empty
-            validation += temp_validation if len(temp_validation) > 0 else random.sample(temp_support,1)
-            support += temp_support
-            query += temp_query
-        return support, query, validation
-    
-    def resample_query_support(query_indices, support_indices):
-        """
-        resamples query and support
-        """
-        query_len = len(query_indices)
-        support_len = len(support_indices)
-        indices = list(set(query_indices + support_indices))
-        random.shuffle(indices)
-        return indices[query_len:], indices[-support_len:]
-    
+            validation += indices[:validation_size]
+            training += indices[validation_size:]
+        return training, validation    
     labels = None
     best_acc = 0
     no_increment_count = 0
     best_model_state = model.state_dict()
-    support, query, validation = get_support_query_validation_indices(dataset)
-    for _ in range(10):
+    training, validation = get_train_validation_indices(dataset)
+    i = 0
+    for _ in range(20 if len(validation) != 0 else 5): # train 5 epochs when validation set is empty
+        i+=1
         accs = []
         acc = 0
         model.train()
-        for _ in range(n):
-            #support, query = resample_query_support(support, query)
-            optimizer.zero_grad()
-            logits = model(dataset.x, dataset.edge_index) # calculating logits updates the embeddings
-            loss = model.loss(dataset, logits, support, query)
-            loss.backward()
-            optimizer.step()
+        optimizer.zero_grad()
+        logits = model(dataset.x, dataset.edge_index) # calculating logits updates the embeddings
+        loss = model.loss(dataset, logits, training)
+        loss.backward()
+        optimizer.step()
         model.eval()
         labels = model(dataset.x, dataset.edge_index).argmax(dim=1)
         acc = accuracy_score(labels[validation], dataset.y[validation])
@@ -135,10 +105,11 @@ def few_shot_training(n, optimizer, model, dataset):
             best_acc = acc
             no_increment_count = 0
         else:
-            if no_increment_count < 3:
+            if no_increment_count < 4:
                 no_increment_count += 1
             else:
                 break
+    print(len(validation), i)
     model.load_state_dict(best_model_state)
     return (accuracy(labels, dataset.y, dataset.train_mask), # train acc
             accuracy(labels, dataset.y, dataset.test_mask)) # test acc
@@ -159,7 +130,7 @@ def train(n, optimizer, model, dataset):
     for i in range(n):
         optimizer.zero_grad()
         logits = model(dataset.x, dataset.edge_index) # getting logits also updates the embeddings
-        loss = model.loss(dataset, logits, train_prop_mask, train_prop_mask) # no few-shot learning
+        loss = model.loss(dataset, logits, train_prop_mask)
         loss.backward()
         optimizer.step()
     model.eval()
@@ -168,21 +139,24 @@ def train(n, optimizer, model, dataset):
     return (accuracy(predictions, dataset.y, dataset.train_mask), # train acc
             accuracy(predictions, dataset.y, dataset.test_mask)) # test acc
 
-def label_propagation(model, dataset, steps=2, uncertainty_threshold = 0.0):
+def label_propagation(model, dataset, steps=2, uncertainty_threshold=0.2):
     """
     Propagates trainig labels and adds their labels to y, modifies dataset
     """
+    dataset.propagated_mask = torch.zeros_like(dataset.propagated_mask, dtype=torch.bool)
+    dataset.y = dataset.ground_truth.clone() # for sanity
     uncertainty_threshold = 1.0 / dataset.train_mask.sum()
     propagator = LabelPropagation(num_layers=steps, alpha=1)
     logits = propagator(dataset.ground_truth, dataset.edge_index, mask=dataset.train_mask)
-    propagated_logits = logits.nonzero(as_tuple=True)[0]
     labels = logits.argmax(dim=-1)
-    model_logits = model(dataset.x, dataset.edge_index).T.detach()
-    normalized_uncertainty_scores = torch.from_numpy(entropy(model_logits) / math.log(dataset.num_classes))
+    propagated_logits = logits.nonzero(as_tuple=True)[0]
+    # remove uncertain logits
+    normalized_uncertainty_scores = torch.from_numpy(entropy(logits[propagated_logits].T) / math.log(dataset.num_classes))
+    propagated_logits = propagated_logits[torch.nonzero(normalized_uncertainty_scores < uncertainty_threshold)]
     dataset.propagated_mask[propagated_logits] = True
-    dataset.propagated_mask[normalized_uncertainty_scores < uncertainty_threshold] = False
-    dataset.y[propagated_logits] = labels[propagated_logits]
-    print("Propagated", len(propagated_logits), "labels\twrong samples:", (dataset.y != dataset.ground_truth).sum(), "\t", uncertainty_threshold)
+    dataset.propagated_mask[dataset.test_mask] = False # prevent test leak
+    dataset.y[dataset.propagated_mask] = labels[dataset.propagated_mask]
+    print("Propagated", dataset.propagated_mask.sum(), "labels\twrong samples:", (dataset.y != dataset.ground_truth).sum(), "\t", uncertainty_threshold)
 
 def run(model,
         dataset,
@@ -228,8 +202,8 @@ def run(model,
             # apply label propagation
             label_propagation(model, dataset)
             # perform training
-            # _, _ = few_shot_training(train_epochs, optimizer, model, dataset)
-            train_stats, test_stats = train(train_epochs, optimizer, model, dataset)
+            train_stats, test_stats = few_shot_training(train_epochs, optimizer, model, dataset)
+            #train_stats, test_stats = train(train_epochs, optimizer, model, dataset)
             def combine_training_stats(x): # x[0] is the full training stat, x[1] the new train stat
                 return x[0] + [x[1]]
             full_train_stats = merge_with(combine_training_stats, full_train_stats, train_stats)
@@ -240,10 +214,14 @@ def run(model,
                 "test": full_test_stats}
     # perform experiments
     results = []
+    torch.manual_seed(seed) # update seeds
+    np.random.seed(seed)
+    random.seed(seed)
+    seeds = [random.randrange(2**31) for i in range(runs)]
     for i in range(runs):
-        torch.manual_seed(seed) # update seeds
-        np.random.seed(seed)
-        random.seed(seed)
+        torch.manual_seed(seeds[i]) # update seeds
+        np.random.seed(seeds[i])
+        random.seed(seeds[i])
         dataset.train_mask, dataset.val_mask, dataset.test_mask = datasets.create_split(dataset, seed=seed) # update splits with given seed
         m = model()
         results.append(run_once(m, copy.deepcopy(dataset), budget, learning_rate))
