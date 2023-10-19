@@ -141,7 +141,7 @@ config = {
     'samplers': ['model'],
     'budget': 140,
     'seed': 3133742069,
-    'repeats': 10,
+    'repeats': 20,
     'average_repeats': True,
     'hyperparameters':{
         'label_propagation_uncertainty_treshold': [0.2],

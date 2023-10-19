@@ -155,7 +155,7 @@ def label_propagation(model, dataset, steps=2, uncertainty_threshold=0.2):
     dataset.propagated_mask[propagated_logits] = True
     dataset.propagated_mask[dataset.test_mask] = False # prevent test leak
     dataset.y[dataset.propagated_mask] = labels[dataset.propagated_mask]
-    print("Propagated", dataset.propagated_mask.sum(), "labels\twrong samples:", (dataset.y != dataset.ground_truth).sum(), "\t", uncertainty_threshold,"\t", model_propagator_bias)
+    print("Propagated", dataset.propagated_mask.sum(), "labels\twrong samples:", (dataset.y != dataset.ground_truth).sum(), "\t", uncertainty_threshold)
 
 def run(model,
         dataset,
