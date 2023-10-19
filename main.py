@@ -43,7 +43,7 @@ def accuracy(predictions, true_labels, mask):
             "macro-f1": f1_score(true_labels[mask], predictions[mask], average='macro'),
             "confusion": confusion_matrix(true_labels[mask], predictions[mask])}
 
-def few_shot_training(n, optimizer, model, dataset):
+def few_shot_training(optimizer, model, dataset):
     """
     Trains and alters given model using few shot learning
 
@@ -109,7 +109,6 @@ def few_shot_training(n, optimizer, model, dataset):
                 no_increment_count += 1
             else:
                 break
-    print(len(validation), i)
     model.load_state_dict(best_model_state)
     return (accuracy(labels, dataset.y, dataset.train_mask), # train acc
             accuracy(labels, dataset.y, dataset.test_mask)) # test acc
@@ -145,26 +144,26 @@ def label_propagation(model, dataset, steps=2, uncertainty_threshold=0.2):
     """
     dataset.propagated_mask = torch.zeros_like(dataset.propagated_mask, dtype=torch.bool)
     dataset.y = dataset.ground_truth.clone() # for sanity
-    uncertainty_threshold = 1.0 / dataset.train_mask.sum()
+    #uncertainty_threshold = 1.0 / dataset.train_mask.sum()
     propagator = LabelPropagation(num_layers=steps, alpha=1)
     logits = propagator(dataset.ground_truth, dataset.edge_index, mask=dataset.train_mask)
     labels = logits.argmax(dim=-1)
     propagated_logits = logits.nonzero(as_tuple=True)[0]
     # remove uncertain logits
     normalized_uncertainty_scores = torch.from_numpy(entropy(logits[propagated_logits].T) / math.log(dataset.num_classes))
-    propagated_logits = propagated_logits[torch.nonzero(normalized_uncertainty_scores < uncertainty_threshold)]
+    propagated_logits = propagated_logits[torch.nonzero(normalized_uncertainty_scores <= uncertainty_threshold)]
     dataset.propagated_mask[propagated_logits] = True
     dataset.propagated_mask[dataset.test_mask] = False # prevent test leak
     dataset.y[dataset.propagated_mask] = labels[dataset.propagated_mask]
-    print("Propagated", dataset.propagated_mask.sum(), "labels\twrong samples:", (dataset.y != dataset.ground_truth).sum(), "\t", uncertainty_threshold)
+    print("Propagated", dataset.propagated_mask.sum(), "labels\twrong samples:", (dataset.y != dataset.ground_truth).sum(), "\t", uncertainty_threshold,"\t", model_propagator_bias)
 
 def run(model,
         dataset,
         sampler='model',
         runs=10,
+        label_propagation_uncertainty_treshold=0.2,
         budget=100,
         seed=133742069,
-        train_epochs=16,
         learning_rate=0.001):
     """Runs experiments on given model "runs" times with the same settings
 
@@ -182,6 +181,7 @@ def run(model,
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=5e-4)
         classifier = None
         sampler_fun = sampling.sampler[sampler]
+        # unintitialized stats
         full_train_stats = {"accuracy": [],
                             "macro-f1": [],
                             "confusion": []}
@@ -189,7 +189,13 @@ def run(model,
                            "macro-f1": [],
                            "confusion": []}
         initial_budget = budget
-        budget_history = []
+        def combine_training_stats(x): # x[0] is the full training stat, x[1] the new train stat
+                return x[0] + [x[1]]
+        train_stats, test_stats = few_shot_training(optimizer, model, dataset)
+        full_train_stats = merge_with(combine_training_stats, full_train_stats, train_stats)
+        full_test_stats = merge_with(combine_training_stats, full_test_stats, test_stats)
+        budget_history = [0]
+        train_class_distribution = [[]]
         while(budget > 0):
             # ask active learner for vertices
             sampled_indices = sampler_fun(min(budget, dataset.num_classes), model, dataset, classifier)
@@ -198,24 +204,23 @@ def run(model,
             # move sampled vertices from the validation to the training set, also restore propagated indices if applicable
             dataset.val_mask[sampled_indices] = False
             dataset.train_mask[sampled_indices] = True
-            dataset.y[dataset.train_mask] = dataset.ground_truth[dataset.train_mask]
             # apply label propagation
-            label_propagation(model, dataset)
+            label_propagation(model, dataset, uncertainty_threshold=label_propagation_uncertainty_treshold)
+            dataset.y[dataset.train_mask] = dataset.ground_truth[dataset.train_mask]
             # perform training
-            train_stats, test_stats = few_shot_training(train_epochs, optimizer, model, dataset)
-            #train_stats, test_stats = train(train_epochs, optimizer, model, dataset)
-            def combine_training_stats(x): # x[0] is the full training stat, x[1] the new train stat
-                return x[0] + [x[1]]
+            train_stats, test_stats = few_shot_training(optimizer, model, dataset)
+            #train_stats, test_stats = train(16, optimizer, model, dataset)
+            
             full_train_stats = merge_with(combine_training_stats, full_train_stats, train_stats)
             full_test_stats = merge_with(combine_training_stats, full_test_stats, test_stats)
+            train_class_distribution.append(torch.bincount(dataset.ground_truth[dataset.train_mask]).numpy())
         print(full_test_stats['accuracy'][-1])
         return {"budget_used": budget_history,
                 "train": full_train_stats,
-                "test": full_test_stats}
+                "test": full_test_stats,
+                "train_distribution": train_class_distribution}
     # perform experiments
     results = []
-    torch.manual_seed(seed) # update seeds
-    np.random.seed(seed)
     random.seed(seed)
     seeds = [random.randrange(2**31) for i in range(runs)]
     for i in range(runs):
@@ -223,9 +228,7 @@ def run(model,
         np.random.seed(seeds[i])
         random.seed(seeds[i])
         dataset.train_mask, dataset.val_mask, dataset.test_mask = datasets.create_split(dataset, seed=seed) # update splits with given seed
-        m = model()
-        results.append(run_once(m, copy.deepcopy(dataset), budget, learning_rate))
-        seed = random.randrange(2**31) # generate seed for next run
+        results.append(run_once(model(), copy.deepcopy(dataset), budget, learning_rate))
     return results
 
 

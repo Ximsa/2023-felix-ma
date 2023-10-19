@@ -69,11 +69,10 @@ def run_config(dataset_names, samplers, budget, seed, repeats, average_repeats, 
                                dataset=dataset,
                                sampler=sampler_name,
                                runs=repeats,
+                               label_propagation_uncertainty_treshold=hyperparams['label_propagation_uncertainty_treshold'],
                                budget=budget,
                                seed=seed,
-                               **keyfilter(lambda x: x in ['train_epochs',
-                                                           'learning_rate'],
-                                           hyperparams))
+                               learning_rate=hyperparams['learning_rate'])
         # store results
         intermediate_results = []
         for result in run_results:
@@ -84,10 +83,11 @@ def run_config(dataset_names, samplers, budget, seed, repeats, average_repeats, 
                             hyperparams,
                             {'test_accuracy': result['test']['accuracy'][i],
                              'test_macro_f1': result['test']['macro-f1'][i],
-                             #'test_confusion': result['test']['confusion'][i],
+                             'test_confusion': result['test']['confusion'][i],
                              'train_accuracy': result['train']['accuracy'][i],
                              'train_macro_f1': result['train']['macro-f1'][i],
-                             #'train_confusion': result['train']['confusion'][i]
+                             #'train_confusion': result['train']['confusion'][i],
+                             'train_class_distribution': result['train_distribution'][i]
                              })
                 intermediate_results.append(row)
         return intermediate_results
@@ -105,9 +105,12 @@ def run_config(dataset_names, samplers, budget, seed, repeats, average_repeats, 
     results.append(run_funs_parallel(funs, 1))
     results = pandas.DataFrame.from_records(np.array(results).flatten())
     # check if averaging is needed
-    if average_repeats:
+    if average_repeats: # averaging discards confusion matrices and label distribution
         grouping = list(takewhile(lambda x: x != "test_accuracy", results.columns))
-        results = results.groupby(grouping).agg(["mean", "std"])
+        results = results.groupby(grouping).agg({'test_accuracy': ["mean","std"],
+                                                 'test_macro_f1': ["mean","std"],
+                                                 'train_accuracy': ["mean","std"],
+                                                 'train_macro_f1': ["mean","std"],})
     return results
 
 def load_and_run_config(filename):
@@ -141,11 +144,11 @@ config = {
     'repeats': 10,
     'average_repeats': True,
     'hyperparameters':{
+        'label_propagation_uncertainty_treshold': [0.2],
         'embedding_dim': [16],
         'hidden_dim_size': [128],
         'dropout': [0.5],
         'distance_loss_weight': [1],
-        'train_epochs': [10],
         'learning_rate': [0.003]}}
 
 result = run_config(**config)
