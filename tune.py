@@ -15,8 +15,7 @@ from toolz.itertoolz import iterate, first, concat, cons
 from toolz.functoolz import thread_last, pipe
 from toolz.dicttoolz import merge, valmap, keyfilter, get_in, merge_with
 
-
-from models import GPN_Encoder
+import models
 import datasets
 import main
 
@@ -49,17 +48,15 @@ def run_funs_parallel(funs, n_threads=None):
             i += 1
         return result
 
-def run_config(dataset_names, samplers, budget, seed, repeats, average_repeats, hyperparameters):
+def run_config(model_names, dataset_names, samplers, budget, seed, repeats, average_repeats, hyperparameters):
     """
     Runs experiments as described in given run config
     :returns: dataframe with run statistics
     """
-    def run_one_experiment(dataset, dataset_name, sampler_name, hyperparams):
+    def run_one_experiment(model_constructor, dataset, dataset_name, sampler_name, hyperparams):
         rank = torch.tensor(list(pagerank(to_networkx(dataset)).values()))
-        gpn_model = partial(GPN_Encoder,
-                            num_node_features=dataset.num_node_features,
-                            num_classes=dataset.num_classes,
-                            pagerank_scores=rank,
+        gpn_model = partial(model_constructor,
+                            dataset,
                             **keyfilter(lambda x: x in ['hidden_dim_size',
                                                         'embedding_dim',
                                                         'dropout',
@@ -94,12 +91,13 @@ def run_config(dataset_names, samplers, budget, seed, repeats, average_repeats, 
     results = []
     funs = []
     # queue up jobs
-    for dataset_name, sampler_name in itertools.product(dataset_names, samplers):
+    for model_name, dataset_name, sampler_name in itertools.product(model_names, dataset_names, samplers):
         dataset = datasets.get_dataset(dataset_name)
+        model_constructor = models.models[model_name]
         keys, values = zip(*hyperparameters.items())
         for bundle in itertools.product(*values):
             config = dict(zip(keys, bundle))
-            funs.append(partial(run_one_experiment, dataset, dataset_name, sampler_name, config))
+            funs.append(partial(run_one_experiment, model_constructor, dataset, dataset_name, sampler_name, config))
     print(str(len(funs)) +" jobs to be started")
     torch.set_num_threads(12) # limit torch to 1 thread for multiprocessing efficiency increase
     results.append(run_funs_parallel(funs, 1))
@@ -137,11 +135,12 @@ example_run_config = {
         'learning_rate': [0.005]}}
 
 config = {
+    'model_names': ['GPN-GAT'],
     'dataset_names': ['Cora'],
     'samplers': ['model'],
     'budget': 140,
     'seed': 3133742069,
-    'repeats': 20,
+    'repeats': 2,
     'average_repeats': True,
     'hyperparameters':{
         'label_propagation_uncertainty_treshold': [0.2],

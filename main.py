@@ -28,7 +28,6 @@ import matplotlib.pyplot as plt
 #own libraries
 import datasets
 import sampling
-from models import GPN_Encoder, GCN
 from util import cond, plot_embeddings, plot_clusterer
 
 def accuracy(predictions, true_labels, mask):
