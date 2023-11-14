@@ -2,6 +2,7 @@ import torch
 import math
 import json
 import random
+import numpy as np
 from scipy.stats import entropy
 from sklearn.cluster import KMeans
 from sklearn_extra.cluster import KMedoids
@@ -15,7 +16,7 @@ from functools import partial
 from itertools import permutations
 from torch_geometric.utils import degree
 
-# TODO sampling strategy involving most uncertain neighbours of labeled data
+# TODO sampling strategy involving most uncertain neighbours of labeled data?
 
 def random_sampling(n, model, dataset, classifier):
     """Randomly samples vertices of a dataset to be included into the test set
@@ -85,47 +86,44 @@ def pagerank_sampling(n, model, dataset, classifier):
     scores, indices = torch.sort(scores, descending=True)
     return indices[:n]
 
-def model_sampling(n, model, dataset, classifier, random_treshold=36):
+def model_sampling(n, model, dataset, classifier, perfect=False):
     """
     Selects vertices of a dataset using the model as classifier to be included into the test set.
     :param n: Number of samples to draw
     :param model: model
     :param dataset: Data to sample from
     :param classifier: unused
-    :param random_treshold: threshold to switch from random to model sampling
+    :param perfect: use oracle to get class assignments
     :returns: Selected vertex indices
     """
-    if dataset.train_mask.sum() < random_treshold:
-        return random_sampling(n, model, dataset, classifier)
-    else:
-        logits = model(dataset.x, dataset.edge_index).detach() # choose model sampling
-        labels = logits.argmax(dim=1)
-        # there might be an empty (validation) class, especially during early trainning. Thus override k labels per class.
-        logits[dataset.train_mask] = -1 # exclude train
-        logits[dataset.test_mask] = -1 # and test from sampling
-        # set k to a sane number
-        num_vertices = dataset.val_mask.sum()
-        num_classes = dataset.num_classes
-        k = math.floor(min(num_vertices / num_classes,
-                           (n / num_classes)*4))
-        split_logits = logits.split(split_size=1, dim=1)
-        taken_indices = []
-        for class_index in range(len(split_logits)):
-            scores, indices = split_logits[class_index].sort(dim=0, descending=True)
-            #now sample k indices
-            num_sampled = 0
-            i = 0
-            while(num_sampled < k):
-                sampled_index = indices[i]
-                if(sampled_index not in taken_indices): # index isnt sampled yet
-                    num_sampled += 1
-                    taken_indices.append(sampled_index)
-                    labels[sampled_index] = class_index
-                i+=1
-        return classifier_sampling(n,
-                                   model,
-                                   dataset,
-                                   labels)
+    logits = model(dataset.x, dataset.edge_index).detach() # choose model sampling
+    labels = logits.argmax(dim=1)
+    # there might be an empty (validation) class, especially during early trainning. Thus override k labels per class.
+    logits[dataset.train_mask] = -1 # exclude train
+    logits[dataset.test_mask] = -1 # and test from sampling
+    # set k to a sane number
+    num_vertices = dataset.val_mask.sum()
+    num_classes = dataset.num_classes
+    k = math.floor(min(num_vertices / num_classes,
+                       (n / num_classes)*4))
+    split_logits = logits.split(split_size=1, dim=1)
+    taken_indices = []
+    for class_index in range(len(split_logits)):
+        scores, indices = split_logits[class_index].sort(dim=0, descending=True)
+        #now sample k indices
+        num_sampled = 0
+        i = 0
+        while(num_sampled < k):
+            sampled_index = indices[i]
+            if(sampled_index not in taken_indices): # index isnt sampled yet
+                num_sampled += 1
+                taken_indices.append(sampled_index)
+                labels[sampled_index] = class_index
+            i+=1
+    return classifier_sampling(n,
+                               model,
+                               dataset,
+                               labels)
 
 def kmedoids_sampling(n, model, dataset, classifier):
     """
@@ -154,8 +152,6 @@ def classifier_sampling(n, model, dataset, labels):
     :param model: model
     :param dataset: Data to sample from
     :param labels: Labels to base the decision on
-    :param perfect_sampling: Only samples correct labels (oracle)
-    :param oversampling_compensation: tries to compensate lesser sampled classes, doesn't work with pseudolabels
     :returns: Selected vertex indices
     """
     exclude_mask = torch.logical_or(dataset.train_mask,
@@ -167,7 +163,6 @@ def classifier_sampling(n, model, dataset, labels):
     grouped_indices = dissoc(grouped_indices, dataset.num_classes)
     #print(valmap(len, grouped_indices))
     # determine samples to be drawn per class
-    # determine classes that have been oversampled
     logits = model(dataset.x, dataset.edge_index).detach()
     samples_per_class = torch.tensor([n // dataset.num_classes for i in range(dataset.num_classes)])
     remainder = n % dataset.num_classes
@@ -176,23 +171,29 @@ def classifier_sampling(n, model, dataset, labels):
             torch.ones(dataset.num_classes, dtype=float), remainder)] += 1
     # draw samples based on entropy and pagerank score
     sampled_indices = torch.tensor([], dtype=int)
-    # hyperparameter weighting pagerank vs entropy
-    # increase entropy weight
-    entropy_pagerank_balance = max(0.3, 0.7-0.003*dataset.train_mask.sum())
+    entopy_pagerank_weighting = 0.75
     for label, indices in grouped_indices.items():
-        num_samples = samples_per_class[label]
+        num_samples = int(min(samples_per_class[label], len(indices)))
         if(num_samples > 0):
-            sorted_scores, sorted_indices_indices = pipe(
-                logits[indices].T, # secondary sampling by entropy and pagerank
-                entropy,
-                torch.from_numpy,
-                lambda entropies: ((1-entropy_pagerank_balance) * normalize(entropies, dim=0, p=1)
-                                   + entropy_pagerank_balance * normalize(dataset.pagerank[indices], dim=0, p=1)), # combine entropy with pagerank
-                torch.sort)
-            #sorted_indices_indices = sorted_indices_indices[torch.randperm(len(sorted_indices_indices))] # just do random sampling
-            sorted_indices = torch.tensor(indices)[sorted_indices_indices]
+            normalized_entropies = pipe(logits[indices].T,
+                                        entropy,
+                                        torch.from_numpy,
+                                        partial(normalize, dim=0, p=1), 
+                                        lambda e: torch.exp(-4 * torch.square(e - 1)),
+                                        partial(normalize, dim=0, p=1))
+            normalized_pageranks = pipe(dataset.pagerank[indices],
+                                        partial(normalize, dim=0, p=1))
+            weights = (normalized_pageranks * (1-entopy_pagerank_weighting)
+                       + normalized_entropies * entopy_pagerank_weighting).numpy()
+            #weights = np.ones_like(weights, dtype='float32')
+            normalized_weights = weights / np.sum(weights)
+            normalized_weights[-1] = 1 - np.sum(normalized_weights[0:-1])
+            selected_indices = np.random.choice(indices,
+                                                size=num_samples,
+                                                p=normalized_weights,
+                                                replace=False)
             sampled_indices = torch.cat([sampled_indices,
-                                         sorted_indices[-samples_per_class[label]:]])
+                                         torch.from_numpy(selected_indices)])
     return sampled_indices
 
 
@@ -201,4 +202,4 @@ sampler = {"random": random_sampling,
            "degree": degree_sampling,
            "pagerank": pagerank_sampling,
            "model": model_sampling,
-           "kmedoids": kmedoids_sampling,} # TODO: experiment with KNeighbours
+           "kmedoids": kmedoids_sampling,}

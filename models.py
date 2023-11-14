@@ -67,7 +67,7 @@ class GPN(torch.nn.Module):
         loss = torch.mean(biggest_distances)
         return loss
 
-    def prototype_loss(self, ground_truth, mask, num_labels):
+    def prototype_loss(self, ground_truth, mask, num_labels): # intra-class loss
         # modeled after https://dl.acm.org/doi/pdf/10.1145/3607144, equation 3 and 4
         prototype_distances = torch.cdist(self.embeddings[mask], self.prototypes)
         prototype_scores = torch.exp(-prototype_distances)

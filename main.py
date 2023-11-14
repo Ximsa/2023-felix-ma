@@ -46,7 +46,6 @@ def few_shot_training(optimizer, model, dataset):
     """
     Trains and alters given model using few shot learning
 
-    :param n: Number of few-shot repeats
     :param optimizer: Optimizer
     :param model: Model to train on
     :param dataset: Dataset with train/validation/test split
@@ -86,7 +85,7 @@ def few_shot_training(optimizer, model, dataset):
     best_model_state = model.state_dict()
     training, validation = get_train_validation_indices(dataset)
     i = 0
-    for _ in range(20 if len(validation) != 0 else 5): # train 5 epochs when validation set is empty
+    for _ in range(20 if len(validation) != 0 else 4): # train 5 epochs when validation set is empty
         i+=1
         accs = []
         acc = 0
@@ -112,38 +111,12 @@ def few_shot_training(optimizer, model, dataset):
     return (accuracy(labels, dataset.y, dataset.train_mask), # train acc
             accuracy(labels, dataset.y, dataset.test_mask)) # test acc
 
-def train(n, optimizer, model, dataset):
-    """
-    Trains and alters given model for n epochs
-
-    :param n: Number of epochs
-    :param optimizer: Optimizer
-    :param model: Model to train on
-    :param dataset: Dataset with train/validation/test split
-    :returns: Dictionary of train and test statistics
-    """
-    num_labels = len(dataset.y.unique())
-    train_prop_mask = torch.logical_or(dataset.train_mask, dataset.propagated_mask)
-    model.train()
-    for i in range(n):
-        optimizer.zero_grad()
-        logits = model(dataset.x, dataset.edge_index) # getting logits also updates the embeddings
-        loss = model.loss(dataset, logits, train_prop_mask)
-        loss.backward()
-        optimizer.step()
-    model.eval()
-    logits = model(dataset.x, dataset.edge_index)
-    predictions = torch.argmax(logits, dim=1)
-    return (accuracy(predictions, dataset.y, dataset.train_mask), # train acc
-            accuracy(predictions, dataset.y, dataset.test_mask)) # test acc
-
 def label_propagation(model, dataset, steps=2, uncertainty_threshold=0.2):
     """
     Propagates trainig labels and adds their labels to y, modifies dataset
     """
     dataset.propagated_mask = torch.zeros_like(dataset.propagated_mask, dtype=torch.bool)
     dataset.y = dataset.ground_truth.clone() # for sanity
-    #uncertainty_threshold = 1.0 / dataset.train_mask.sum()
     propagator = LabelPropagation(num_layers=steps, alpha=1)
     logits = propagator(dataset.ground_truth, dataset.edge_index, mask=dataset.train_mask)
     labels = logits.argmax(dim=-1)
@@ -154,7 +127,7 @@ def label_propagation(model, dataset, steps=2, uncertainty_threshold=0.2):
     dataset.propagated_mask[propagated_logits] = True
     dataset.propagated_mask[dataset.test_mask] = False # prevent test leak
     dataset.y[dataset.propagated_mask] = labels[dataset.propagated_mask]
-    print("Propagated", dataset.propagated_mask.sum(), "labels\twrong samples:", (dataset.y != dataset.ground_truth).sum(), "\t", uncertainty_threshold)
+    #print("Propagated", dataset.propagated_mask.sum(), "labels\twrong samples:", (dataset.y != dataset.ground_truth).sum(), "\t", uncertainty_threshold)
 
 def run(model,
         dataset,
@@ -190,9 +163,14 @@ def run(model,
         initial_budget = budget
         def combine_training_stats(x): # x[0] is the full training stat, x[1] the new train stat
                 return x[0] + [x[1]]
+        #train once on random labels for initialisation
+        train_mask_backup = dataset.train_mask.clone()
+        dataset.train_mask = dataset.val_mask
+        dataset.y = torch.randint_like(dataset.y, low=0, high=dataset.num_classes)
         train_stats, test_stats = few_shot_training(optimizer, model, dataset)
         full_train_stats = merge_with(combine_training_stats, full_train_stats, train_stats)
         full_test_stats = merge_with(combine_training_stats, full_test_stats, test_stats)
+        dataset.train_mask = train_mask_backup
         budget_history = [0]
         train_class_distribution = [[]]
         while(budget > 0):

@@ -135,20 +135,45 @@ example_run_config = {
         'learning_rate': [0.005]}}
 
 config = {
-    'model_names': ['GPN-GAT'],
+    'model_names': ['GPN-GCN'],
     'dataset_names': ['Cora'],
     'samplers': ['model'],
-    'budget': 140,
+    'budget': 42,
     'seed': 3133742069,
-    'repeats': 2,
+    'repeats': 20,
     'average_repeats': True,
     'hyperparameters':{
         'label_propagation_uncertainty_treshold': [0.2],
-        'embedding_dim': [16],
-        'hidden_dim_size': [128],
+        'embedding_dim': [32],
+        'hidden_dim_size': [256],
         'dropout': [0.5],
         'distance_loss_weight': [1],
         'learning_rate': [0.003]}}
 
 result = run_config(**config)
 result.to_csv("results.csv", sep=";")
+print(result['test_accuracy'])
+# entropy pagerank weighting - high -> entopy more important
+# 0.00 0.602325581395349	0.0768214626301034
+# 0.25 0.642105263157895	0.0587322603151352
+# 0.50 0.649816401468788	0.0521739934394169
+# 0.75 0.662545899632803	0.0324096849742464
+# 1.00 0.642227662178702	0.0825627541947921
+
+# 0.25 0.660709914320685	0.0526862663769194
+# 0.50 0.627662178702570	0.0579521987750903
+# 0.75 0.607466340269278	0.0377040642473149
+
+# budget: 42, target-entropy
+
+# 0.10: 627
+# 0.20: 637
+# 0.30: 618
+# 0.40: 618
+# 0.50: 643
+# 0.60: 654
+# 0.70: 624
+# 0.80: 623
+# 0.90: 647
+# 1.00: 619
+#    / 1000
