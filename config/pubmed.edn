@@ -1,0 +1,13 @@
+{"model_names" ["GPN-GCN"]
+ "dataset_names" ["PubMed"]
+ "samplers" ["own"]
+ "budget" 420
+ "seed" 3133742069
+ "repeats" 20
+ "hyperparameters"
+ {"entropy_pagerank_weighting" [-1 0 0.5 1]
+  "label_propagation_uncertainty_treshold" [0.2]
+  "hidden_dim_size" [64]
+  "dropout" [0.5]
+  "distance_loss_weight" [1]
+  "learning_rate" [0.005]}}

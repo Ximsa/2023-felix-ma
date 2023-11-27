@@ -1,11 +1,10 @@
-from toolz.dicttoolz import valmap, keyfilter
-
+import sys
 import time
 import torch
 #torch.cuda.is_available = lambda : False # for multiprocessing to work
 import itertools
 import pandas
-import multiprocess
+import edn_format
 import numpy as np
 from networkx import pagerank
 from torch_geometric.utils import to_networkx
@@ -14,7 +13,6 @@ from itertools import takewhile
 from toolz.itertoolz import iterate, first, concat, cons
 from toolz.functoolz import thread_last, pipe
 from toolz.dicttoolz import merge, valmap, keyfilter, get_in, merge_with
-
 import models
 import datasets
 import main
@@ -27,13 +25,13 @@ def run_config(model_names, dataset_names, samplers, budget, seed, repeats, hype
     :returns: dataframe with run statistics
     """
     def run_one_experiment(model_constructor, dataset, dataset_name, sampler_name, hyperparams):
-        gpn_model = partial(model_constructor,
-                            dataset,
-                            **select_keys(hyperparams,
-                                          (['hidden_dim_size',
-                                           'dropout',
-                                           'distance_loss_weight'])))
-        run_results = main.run(model=gpn_model,
+        model = partial(model_constructor,
+                        dataset,
+                        **select_keys(hyperparams,
+                                      (['hidden_dim_size',
+                                        'dropout',
+                                        'distance_loss_weight'])))
+        run_results = main.run(model=model,
                                dataset=dataset,
                                sampler=sampler_name,
                                runs=repeats,
@@ -68,46 +66,54 @@ def run_config(model_names, dataset_names, samplers, budget, seed, repeats, hype
 
 def load_and_run_config(filename):
     with open(filename, "r") as f:
-        config = yaml.load(f)
+        contents = f.read()
+        config = edn_format.loads(contents)
         print(config)
         return run_config(**config)
+    
+if __name__ == "__main__":
+    results = load_and_run_config(sys.argv[1])
+    for name, result in results.items():
+        result.to_csv("results/"+name + ".csv", sep=";")
 
-dataset = datasets.get_dataset('Cora')
+"""
+    #dataset = datasets.get_dataset('Cora')
 
-example_run_config = {
-    'dataset_names': ['Cora'],
-    'samplers': ['model','kmedoids'],
-    'budget': 14,
-    'seed': 3133742069,
-    'repeats': 1,
-    'average_repeats': True,
-    'hyperparameters':{
-        'hidden_dim_size': [128],
-        'dropout': [0.6],
-        'distance_loss_weight': [0.5],
-        'train_epochs': [6],
-        'learning_rate': [0.005]}}
+    example_run_config = {
+        'dataset_names': ['Cora'],
+        'samplers': ['model','kmedoids'],
+        'budget': 14,
+        'seed': 3133742069,
+        'repeats': 1,
+        'average_repeats': True,
+        'hyperparameters':{
+            'hidden_dim_size': [128],
+            'dropout': [0.6],
+            'distance_loss_weight': [0.5],
+            'train_epochs': [6],
+            'learning_rate': [0.005]}}
 
-config = {
-    'model_names': ['GPN-GCN'],
-    'dataset_names': ['Cora'],
-    'samplers': ['own'],
-    'budget': 42,
-    'seed': 3133742069,
-    'repeats': 1,
-    'hyperparameters':{
-        'entropy_pagerank_weighting': [0.5],
-        'label_propagation_uncertainty_treshold': [0.2],
-        'hidden_dim_size': [64],
-        'dropout': [0.5],
-        'distance_loss_weight': [1],
-        'learning_rate': [0.005]}}
-
-results = run_config(**config)
-for name, result in results.items():
-    result.to_csv(name + ".csv", sep=";")
+    config = {
+        'model_names': ['GPN-GCN'],
+        'dataset_names': ['Cora'],
+        'samplers': ['own'],
+        'budget': 42,
+        'seed': 3133742069,
+        'repeats': 1,
+        'hyperparameters':{
+            'entropy_pagerank_weighting': [0.5],
+            'label_propagation_uncertainty_treshold': [0.2],
+            'hidden_dim_size': [64],
+            'dropout': [0.5],
+            'distance_loss_weight': [1],
+            'learning_rate': [0.005]}}
+    
+    results = run_config(**config)
+    for name, result in results.items():
+        result.to_csv(name + ".csv", sep=";")
 
 # hyperparams:
 # lr 0.01, 0.005, 0.001
 # distance loss weight: 0.5 1 2
 # 
+"""

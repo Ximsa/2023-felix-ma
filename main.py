@@ -119,6 +119,23 @@ def few_shot_training(optimizer, model, dataset, report_only=False):
                  keymap(lambda key: "unlabeled " + key, accuracy(labels, dataset.y, dataset.val_mask)),
                  keymap(lambda key: "test " + key, accuracy(labels, dataset.y, dataset.test_mask)))
 
+def model_soup_trainig(optimizer, model, dataset, hyperparams):
+    """
+    Perfroms training on each given hyperparameter and creates a greedy model soup
+
+    :param optimizer: base optimizer
+    :param model: model to train, altered via side-effects
+    :param dataset: dataset:
+    :param hyperparams: dict containing 'learning rates', 'dropouts', and 'distance_loss_weights' to be tuned
+    :return: run stats
+    """
+    learning_rates = hyperparams['learning_rates']
+    dropouts = hyperparams['dropouts']
+    distance_loss_weights = hyperparams['distance_loss_weights']
+    original_model_state = model.state_dict()
+    original_optimizer_state = optimizer.state_dict()
+    pass
+
 def label_propagation(model, dataset, steps=3, uncertainty_threshold=0.2):
     """
     Propagates trainig labels and adds their labels to y, modifies dataset
@@ -139,14 +156,15 @@ def label_propagation(model, dataset, steps=3, uncertainty_threshold=0.2):
 
 def run(model,
         dataset,
-        sampler='model',
+        sampler='own',
         runs=10,
         label_propagation_uncertainty_treshold=0.2,
         budget=100,
         seed=133742069,
         learning_rate=0.001,
         entropy_pagerank_weighting = 0.5):
-    """Runs experiments on given model "runs" times with the same settings
+    """
+    Runs experiments on given model "runs" times with the same settings
 
     :param model: Model constructor with 0 args for model construction
     :param dataset: Data for training, testing, and validation
@@ -198,7 +216,9 @@ def run(model,
         np.random.seed(seeds[i])
         random.seed(seeds[i])
         dataset.train_mask, dataset.val_mask, dataset.test_mask = datasets.create_split(dataset, seed=seed) # update splits with given seed
-        results += run_once(model(), copy.deepcopy(dataset), budget, learning_rate)
+        result = run_once(model(), copy.deepcopy(dataset), budget, learning_rate)
+        result = list(map(partial(merge, {"seed": seeds[i]}), result))
+        results+=result
     return results
 
 

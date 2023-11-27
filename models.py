@@ -19,12 +19,7 @@ class GPN(torch.nn.Module):
         self.conv2 = GCNConv(hidden_dim_size, hidden_dim_size)
         self.dropout = dropout
         self.distance_loss_weight = distance_loss_weight
-        # initialize embeddings by performing one forward call, used to initialize prototypes
         self.prototypes = torch.rand([dataset.num_classes, hidden_dim_size])
-        """self.forward(dataset.x, dataset.edge_index)
-        self.prototypes = torch.normal(mean=torch.zeros([dataset.num_classes, hidden_dim_size]), std=self.embeddings.detach().abs().mean())
-        self.zero_grad()
-        self.train()"""
 
     def forward(self, x, edge_index):
         x = self.conv1(x, edge_index)
@@ -119,10 +114,11 @@ class GCN(torch_geometric.nn.models.GCN):
                          num_layers=2,
                          out_channels=dataset.num_classes,
                          dropout=dropout)
-
-    def loss(self, dataset, logits, support_indices, query_indices=None):
+    def forward(self, x, edge_index):
+        return F.softmax(super().forward(x, edge_index), dim=1)
         
-        return F.cross_entropy(F.softmax(logits[support_indices], dim=1), dataset.y[support_indices])
+    def loss(self, dataset, logits, support_indices, query_indices=None):
+        return F.cross_entropy(logits[support_indices], dataset.y[support_indices])
 
 
 
