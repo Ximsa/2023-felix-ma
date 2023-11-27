@@ -8,18 +8,23 @@ class GPN(torch.nn.Module):
     def __init__(self,
                  dataset,
                  hidden_dim_size = 128,
-                 embedding_dim = 16,
                  dropout = 0.5,
                  distance_loss_weight = 1.0):
         super().__init__()
+        #self.eval()
         num_node_features = dataset.num_node_features
         num_classes = dataset.num_classes
         self.pagerank_scores = dataset.pagerank
         self.conv1 = GCNConv(num_node_features, hidden_dim_size)
-        self.conv2 = GCNConv(hidden_dim_size, embedding_dim)
+        self.conv2 = GCNConv(hidden_dim_size, hidden_dim_size)
         self.dropout = dropout
         self.distance_loss_weight = distance_loss_weight
-        self.prototypes = torch.rand([num_classes, embedding_dim])
+        # initialize embeddings by performing one forward call, used to initialize prototypes
+        self.prototypes = torch.rand([dataset.num_classes, hidden_dim_size])
+        """self.forward(dataset.x, dataset.edge_index)
+        self.prototypes = torch.normal(mean=torch.zeros([dataset.num_classes, hidden_dim_size]), std=self.embeddings.detach().abs().mean())
+        self.zero_grad()
+        self.train()"""
 
     def forward(self, x, edge_index):
         x = self.conv1(x, edge_index)
@@ -42,8 +47,9 @@ class GPN(torch.nn.Module):
         prototypes = []
         for label in range(num_classes):
             if len(embeddings[labels==label]) > 0:
+                normalized_pagerank = F.normalize(pagerank_scores[labels==label], p=1, dim=0).unsqueeze(1)
                 prototypes.append(
-                    (embeddings[labels==label] * pagerank_scores[labels==label].unsqueeze(1)).sum(dim=0) / pagerank_scores[labels==label].sum())
+                    (embeddings[labels==label] * normalized_pagerank).sum(dim=0))
             else:
                 prototypes.append(torch.zeros(embeddings.size(1)))
                            
@@ -73,9 +79,9 @@ class GPN(torch.nn.Module):
         prototype_scores = torch.exp(-prototype_distances)
         prototype_total_scores = torch.sum(prototype_scores, dim=1)
         prototype_logits = prototype_scores / prototype_total_scores.unsqueeze(-1)
-        loss = F.nll_loss(F.log_softmax(prototype_logits, dim=1), ground_truth[mask])
+        loss = F.nll_loss(torch.log(prototype_logits), ground_truth[mask])
         return loss
-
+    
     def loss(self, dataset, logits, support_indices, query_indices=None):
         if query_indices is None:
             query_indices = support_indices
@@ -91,12 +97,10 @@ class GPN_GAT(GPN):
     def __init__(self,
                  dataset,
                  hidden_dim_size = 128,
-                 embedding_dim = 16,
                  dropout = 0.5,
                  distance_loss_weight = 1.0):
         super().__init__(dataset,
                          hidden_dim_size,
-                         embedding_dim,
                          dropout,
                          distance_loss_weight)
         num_node_features = dataset.num_node_features
@@ -108,7 +112,6 @@ class GCN(torch_geometric.nn.models.GCN):
     def __init__(self,
                  dataset,
                  hidden_dim_size = 128,
-                 embedding_dim = 16, # unused
                  dropout = 0.5,
                  distance_loss_weight = 1.0): # unused
         super().__init__(dataset.num_node_features,
@@ -124,5 +127,5 @@ class GCN(torch_geometric.nn.models.GCN):
 
 
 models = {"GCN": GCN,
-          "GPN-GAT": GPN_GAT,
-          "GPN-GCN": GPN,}
+          "GPN-GCN": GPN,
+          "GPN-GAT": GPN_GAT,}

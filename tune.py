@@ -18,50 +18,21 @@ from toolz.dicttoolz import merge, valmap, keyfilter, get_in, merge_with
 import models
 import datasets
 import main
+from util import select_keys
 
 
-def run_funs_parallel(funs, n_threads=None):
-    """
-    runs given functions in parallel and returns their results in a list
-    
-    :param n_threads: number of threads to be used. negative means all threads, 1 disables multiprocessing
-    :return list of evaled funs
-    """
-    if n_threads != 1:
-        with multiprocess.Pool(processes=n_threads) as pool:
-            actions = [pool.apply_async(fun) for fun in funs]
-            num_completed = 0
-            last_num_completed = -1
-            while num_completed != len(actions):
-                num_completed = sum([action.ready() for action in actions])
-                if num_completed > last_num_completed:
-                    print(str(num_completed) + "\t of " + str(len(actions)))
-                    last_num_completed = num_completed
-                time.sleep(1)
-            return [action.get() for action in actions]
-    else: # just run sequentially
-        i = 0
-        result = []
-        for fun in funs:
-            result.append(fun())
-            print(str(i) + "\t of " + str(len(funs)))
-            i += 1
-        return result
-
-def run_config(model_names, dataset_names, samplers, budget, seed, repeats, average_repeats, hyperparameters):
+def run_config(model_names, dataset_names, samplers, budget, seed, repeats, hyperparameters):
     """
     Runs experiments as described in given run config
     :returns: dataframe with run statistics
     """
     def run_one_experiment(model_constructor, dataset, dataset_name, sampler_name, hyperparams):
-        rank = torch.tensor(list(pagerank(to_networkx(dataset)).values()))
         gpn_model = partial(model_constructor,
                             dataset,
-                            **keyfilter(lambda x: x in ['hidden_dim_size',
-                                                        'embedding_dim',
-                                                        'dropout',
-                                                        'distance_loss_weight'],
-                                        hyperparams))
+                            **select_keys(hyperparams,
+                                          (['hidden_dim_size',
+                                           'dropout',
+                                           'distance_loss_weight'])))
         run_results = main.run(model=gpn_model,
                                dataset=dataset,
                                sampler=sampler_name,
@@ -69,46 +40,30 @@ def run_config(model_names, dataset_names, samplers, budget, seed, repeats, aver
                                label_propagation_uncertainty_treshold=hyperparams['label_propagation_uncertainty_treshold'],
                                budget=budget,
                                seed=seed,
-                               learning_rate=hyperparams['learning_rate'])
-        # store results
-        intermediate_results = []
-        for result in run_results:
-            for i in range(len(result['test']['accuracy'])):
-                row = merge({'dataset_name': dataset_name,
-                             'sampler_name': sampler_name,
-                             'budget': result['budget_used'][i]},
-                            hyperparams,
-                            {'test_accuracy': result['test']['accuracy'][i],
-                             'test_macro_f1': result['test']['macro-f1'][i],
-                             'test_confusion': result['test']['confusion'][i],
-                             'train_accuracy': result['train']['accuracy'][i],
-                             'train_macro_f1': result['train']['macro-f1'][i],
-                             #'train_confusion': result['train']['confusion'][i],
-                             'train_class_distribution': result['train_distribution'][i]
-                             })
-                intermediate_results.append(row)
-        return intermediate_results
-    results = []
-    funs = []
-    # queue up jobs
+                               learning_rate=hyperparams['learning_rate'],
+                               entropy_pagerank_weighting=hyperparams['entropy_pagerank_weighting'])
+        # append additional run information to results
+        return list(map(partial(merge,
+                                {'dataset_name': dataset_name,
+                                 'sampler_name': sampler_name,},
+                                hyperparams),
+                        run_results))
+    results = {}
+    # perform jobs
     for model_name, dataset_name, sampler_name in itertools.product(model_names, dataset_names, samplers):
         dataset = datasets.get_dataset(dataset_name)
         model_constructor = models.models[model_name]
         keys, values = zip(*hyperparameters.items())
         for bundle in itertools.product(*values):
             config = dict(zip(keys, bundle))
-            funs.append(partial(run_one_experiment, model_constructor, dataset, dataset_name, sampler_name, config))
-    print(str(len(funs)) +" jobs to be started")
-    torch.set_num_threads(12) # limit torch to 1 thread for multiprocessing efficiency increase
-    results.append(run_funs_parallel(funs, 1))
-    results = pandas.DataFrame.from_records(np.array(results).flatten())
-    # check if averaging is needed
-    if average_repeats: # averaging discards confusion matrices and label distribution
-        grouping = list(takewhile(lambda x: x != "test_accuracy", results.columns))
-        results = results.groupby(grouping).agg({'test_accuracy': ["mean","std"],
-                                                 'test_macro_f1': ["mean","std"],
-                                                 'train_accuracy': ["mean","std"],
-                                                 'train_macro_f1': ["mean","std"],})
+            result = run_one_experiment(model_constructor,
+                                        dataset,
+                                        dataset_name,
+                                        sampler_name,
+                                        config)
+            result = pandas.DataFrame.from_records(result)
+            name = "-".join([dataset_name, model_name, sampler_name] + list(map(str, config.values())))
+            results[name] = result
     return results
 
 def load_and_run_config(filename):
@@ -121,13 +76,12 @@ dataset = datasets.get_dataset('Cora')
 
 example_run_config = {
     'dataset_names': ['Cora'],
-    'samplers': ['model','kmedoids'],#,'kmedoids','pagerank','random'],
+    'samplers': ['model','kmedoids'],
     'budget': 14,
     'seed': 3133742069,
     'repeats': 1,
     'average_repeats': True,
     'hyperparameters':{
-        'embedding_dim': [2,16],
         'hidden_dim_size': [128],
         'dropout': [0.6],
         'distance_loss_weight': [0.5],
@@ -137,43 +91,23 @@ example_run_config = {
 config = {
     'model_names': ['GPN-GCN'],
     'dataset_names': ['Cora'],
-    'samplers': ['model'],
+    'samplers': ['own'],
     'budget': 42,
     'seed': 3133742069,
-    'repeats': 20,
-    'average_repeats': True,
+    'repeats': 1,
     'hyperparameters':{
+        'entropy_pagerank_weighting': [0.5],
         'label_propagation_uncertainty_treshold': [0.2],
-        'embedding_dim': [32],
-        'hidden_dim_size': [256],
+        'hidden_dim_size': [64],
         'dropout': [0.5],
         'distance_loss_weight': [1],
-        'learning_rate': [0.003]}}
+        'learning_rate': [0.005]}}
 
-result = run_config(**config)
-result.to_csv("results.csv", sep=";")
-print(result['test_accuracy'])
-# entropy pagerank weighting - high -> entopy more important
-# 0.00 0.602325581395349	0.0768214626301034
-# 0.25 0.642105263157895	0.0587322603151352
-# 0.50 0.649816401468788	0.0521739934394169
-# 0.75 0.662545899632803	0.0324096849742464
-# 1.00 0.642227662178702	0.0825627541947921
+results = run_config(**config)
+for name, result in results.items():
+    result.to_csv(name + ".csv", sep=";")
 
-# 0.25 0.660709914320685	0.0526862663769194
-# 0.50 0.627662178702570	0.0579521987750903
-# 0.75 0.607466340269278	0.0377040642473149
-
-# budget: 42, target-entropy
-
-# 0.10: 627
-# 0.20: 637
-# 0.30: 618
-# 0.40: 618
-# 0.50: 643
-# 0.60: 654
-# 0.70: 624
-# 0.80: 623
-# 0.90: 647
-# 1.00: 619
-#    / 1000
+# hyperparams:
+# lr 0.01, 0.005, 0.001
+# distance loss weight: 0.5 1 2
+# 

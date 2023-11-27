@@ -6,6 +6,7 @@ import networkx as nx
 from sklearn.manifold import TSNE
 from sklearn.metrics import confusion_matrix
 from toolz.itertoolz import partition
+from toolz.dicttoolz import keyfilter
 
 
 def plot_embeddings(embeddings, labels):
@@ -52,3 +53,10 @@ def cond(value, *clauses):
             return result
     return None
         
+def select_keys(dictionary, keys):
+    """
+    similar to https://clojuredocs.org/clojure.core/select-keys
+    ignores keys not present in dictionary
+    :return: new dictionary with only given keys
+    """
+    return keyfilter(lambda key: key in keys, dictionary)
