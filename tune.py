@@ -70,7 +70,7 @@ def load_and_run_config(filename):
         config = edn_format.loads(contents)
         print(config)
         return run_config(**config)
-    
+
 if __name__ == "__main__":
     results = load_and_run_config(sys.argv[1])
     for name, result in results.items():
