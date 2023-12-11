@@ -18,7 +18,6 @@ import datasets
 import main
 from util import select_keys
 
-
 def run_config(model_names, dataset_names, samplers, budget, seed, repeats, hyperparameters):
     """
     Runs experiments as described in given run config
@@ -61,20 +60,26 @@ def run_config(model_names, dataset_names, samplers, budget, seed, repeats, hype
                                         config)
             result = pandas.DataFrame.from_records(result)
             name = "-".join([dataset_name, model_name, sampler_name] + list(map(str, config.values())))
-            results[name] = result
+            results[name] = (dataset_name, result)
     return results
 
 def load_and_run_config(filename):
     with open(filename, "r") as f:
         contents = f.read()
         config = edn_format.loads(contents)
-        print(config)
+        print(contents)
         return run_config(**config)
 
 if __name__ == "__main__":
     results = load_and_run_config(sys.argv[1])
-    for name, result in results.items():
-        result.to_csv("results/"+name + ".csv", sep=";")
+    for name, (dataset_name, result) in results.items():
+        filename = "results/"+ dataset_name + "/" + name + ".csv"
+        csv = result.to_csv(sep=";", index=False)
+        # postprocessing: seperate runs by empty rows
+        csv = [line if line.find(";;") == -1 else "\n" for line in csv.splitlines()]
+        f = open(filename, "w")
+        f.write("\n".join(csv))
+        f.close()
 
 """
     #dataset = datasets.get_dataset('Cora')
@@ -92,25 +97,24 @@ if __name__ == "__main__":
             'distance_loss_weight': [0.5],
             'train_epochs': [6],
             'learning_rate': [0.005]}}
-
-    config = {
-        'model_names': ['GPN-GCN'],
-        'dataset_names': ['Cora'],
-        'samplers': ['own'],
-        'budget': 42,
-        'seed': 3133742069,
-        'repeats': 1,
-        'hyperparameters':{
-            'entropy_pagerank_weighting': [0.5],
-            'label_propagation_uncertainty_treshold': [0.2],
-            'hidden_dim_size': [64],
-            'dropout': [0.5],
-            'distance_loss_weight': [1],
-            'learning_rate': [0.005]}}
+config = {
+    'model_names': ['GPN-GCN'],
+    'dataset_names': ['Cora'],
+    'samplers': ['own'],
+    'budget': 42,
+    'seed': 3133742069,
+    'repeats': 1,
+    'hyperparameters':{
+        'entropy_pagerank_weighting': [0.5],
+        'label_propagation_uncertainty_treshold': [0.2],
+        'hidden_dim_size': [64],
+        'dropout': [0.5],
+        'distance_loss_weight': [1],
+        'learning_rate': [0.005]}}
     
-    results = run_config(**config)
-    for name, result in results.items():
-        result.to_csv(name + ".csv", sep=";")
+results = run_config(**config)
+for name, result in results.items():
+    result.to_csv(name + ".csv", sep=";")
 
 # hyperparams:
 # lr 0.01, 0.005, 0.001

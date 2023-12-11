@@ -21,19 +21,22 @@ class GPN(torch.nn.Module):
         self.distance_loss_weight = distance_loss_weight
         self.prototypes = torch.rand([dataset.num_classes, hidden_dim_size])
 
-    def forward(self, x, edge_index):
-        x = self.conv1(x, edge_index)
-        x = F.relu(x)
-        x = F.dropout(x, self.dropout, training=self.training)
-        x = self.conv2(x, edge_index)
-        self.embeddings = x
+    def forward(self, x, edge_index, y=None, mask=None):
+        self.embeddings = self.get_embeddings(x, edge_index)
         # transform to probabilities
-        distances = torch.cdist(x, self.prototypes)
+        distances = torch.cdist(self.embeddings, self.prototypes)
         scores = torch.exp(-distances)
         total_scores = torch.sum(scores, dim=1)
         logits = scores / total_scores.unsqueeze(-1)
         return logits
 
+    def get_embeddings(self, x, edge_index,y=None, mask=None):
+        x = self.conv1(x, edge_index)
+        x = F.relu(x)
+        x = F.dropout(x, self.dropout, training=self.training)
+        x = self.conv2(x, edge_index)
+        return x
+        
     def get_prototypes(self, labels, mask, num_classes):
         labels = labels[mask]
         embeddings = self.embeddings[mask]
@@ -101,7 +104,7 @@ class GPN_GAT(GPN):
         num_node_features = dataset.num_node_features
         num_classes = dataset.num_classes
         self.conv1 = GATConv(num_node_features, hidden_dim_size)
-        self.conv2 = GATConv(hidden_dim_size, embedding_dim)
+        self.conv2 = GATConv(hidden_dim_size, hidden_dim_size)
 
 class GCN(torch_geometric.nn.models.GCN):
     def __init__(self,
@@ -114,14 +117,41 @@ class GCN(torch_geometric.nn.models.GCN):
                          num_layers=2,
                          out_channels=dataset.num_classes,
                          dropout=dropout)
-    def forward(self, x, edge_index):
+    def forward(self, x, edge_index, y=None, mask=None):
         return F.softmax(super().forward(x, edge_index), dim=1)
+
+    def get_embeddings(self, x, edge_index, y=None, mask=None):
+        return super().forward(x,edge_index)
         
     def loss(self, dataset, logits, support_indices, query_indices=None):
         return F.cross_entropy(logits[support_indices], dataset.y[support_indices])
 
+class LP(torch_geometric.nn.models.LabelPropagation):
+    def __init__(self,
+                 dataset,
+                 hidden_dim_size = 128, # unused
+                 dropout = 0.5, # ununsed
+                 distance_loss_weight = 1.0): # unused
+        super().__init__(num_layers=5, alpha=0.9)
+        # add fake tunable parameter
+        self.fakeparam = torch.nn.Parameter(torch.tensor([0.], 
+                                                         requires_grad=True, dtype=torch.float64))
+        
+    def forward(self, x, edge_index, y, mask):
+        return F.softmax(self.get_embeddings(x, edge_index, y, mask), dim=1)
+    
+    def get_embeddings(self, x, edge_index, y, mask):
+        # embeddings get randomly initialized and overwritten by label propagation if nonzero
+        embeddings = F.softmax(torch.rand([len(y),len(y.unique())]),dim=1)
+        propagated_embeddings = super().forward(y, edge_index, mask)
+        propagated_logits = propagated_embeddings.nonzero(as_tuple=True)[0]
+        embeddings[propagated_logits] = propagated_embeddings[propagated_logits]
+        return embeddings
+    
+    def loss(self, dataset, logits, support_indices, query_indices=None):
+        return F.mse_loss(self.fakeparam, self.fakeparam)
 
-
-models = {"GCN": GCN,
+models = {"LP": LP,
+          "GCN": GCN,
           "GPN-GCN": GPN,
           "GPN-GAT": GPN_GAT,}

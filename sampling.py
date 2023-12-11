@@ -60,7 +60,7 @@ def sub_sampler(num_samples, indices, logits, ranks, entropy_pagerank_weighting)
                                         replace=False)
     return selected_indices
 
-def own_sampling(n, model, dataset, perfect=False, entropy_pagerank_weighting = 0.5, compensate_undersampled=False):
+def own_sampling(n, model, dataset, perfect=False, entropy_pagerank_weighting = 0.5):
     """
     Selects vertices of a dataset using the model as classifier to be included into the test set.
     :param n: Number of samples to draw
@@ -73,50 +73,20 @@ def own_sampling(n, model, dataset, perfect=False, entropy_pagerank_weighting = 
     """
     exclude_mask = torch.logical_or(dataset.train_mask,
                                     dataset.test_mask)
-    logits = model(dataset.x, dataset.edge_index).detach() # use model as classifier
-    labels = logits.argmax(dim=1)
-    if perfect: labels = dataset.ground_truth.clone()
-    # there might be an empty (validation) class, especially during early trainning. Thus override k labels per class.
-    logits[exclude_mask] = -1 # exclude labeled and unlabeled from sampling
-    labels[exclude_mask] = -1
-    # set k to a sane number, i.e.: 4
+    # perform K-Medoids on the unlabeled embeddings
+    clusterer = KMedoids(n_clusters=dataset.num_classes, init="k-medoids++").fit(model.get_embeddings(dataset.x, dataset.edge_index, dataset.ground_truth, dataset.train_mask)[dataset.val_mask].detach().numpy())
+    labels = torch.full_like(dataset.ground_truth, -1) # initialize with -1 to ignore those vertices
+    labels[dataset.val_mask] = torch.from_numpy(clusterer.labels_)
+    if perfect: labels[dataset.val_mask] = dataset.ground_truth.clone()[dataset.val_mask]
     num_vertices = dataset.val_mask.sum()
     num_classes = dataset.num_classes
-    k = 0 if perfect else 4 # prevent knn when having perfect labels
-    split_logits = logits.split(split_size=1, dim=1)
-    taken_indices = []
-    for class_index in range(len(split_logits)): # sample k for each class
-        scores, indices = split_logits[class_index].sort(dim=0, descending=True)
-        num_sampled = 0
-        i = 0
-        while(num_sampled < k):
-            sampled_index = indices[i]
-            if(scores[i] == -1):
-                print("sampled unlabeled or test index")
-                exit(1)
-            if(sampled_index not in taken_indices): # index isnt sampled yet
-                num_sampled += 1
-                taken_indices.append(sampled_index)
-                labels[sampled_index] = class_index
-            i+=1
-    #print(torch.bincount(dataset.ground_truth[dataset.train_mask]))
-    # determine samples per bucket
     samples_per_class = torch.zeros(dataset.num_classes)
-    if compensate_undersampled:
-        # compensate by moving samples from oversampled to undersampled buckets
-        distribution = torch.bincount(dataset.ground_truth[dataset.train_mask])
-        samples_per_class[:len(distribution)] = distribution
-        samples_per_class = samples_per_class - dataset.train_mask.sum() // dataset.num_classes
-        samples_per_class -= 1
-        samples_per_class[samples_per_class > 0] = 0
-        samples_per_class = samples_per_class.abs()
-    else:
-        # one sample per class
-        samples_per_class = torch.tensor([n // dataset.num_classes for i in range(dataset.num_classes)])
-        remainder = n % dataset.num_classes
-        if remainder > 0:
-            samples_per_class[torch.multinomial(
-                torch.ones(dataset.num_classes, dtype=float), remainder)] += 1
+    # one sample per class
+    samples_per_class = torch.tensor([n // dataset.num_classes for i in range(dataset.num_classes)])
+    remainder = n % dataset.num_classes
+    if remainder > 0:
+        samples_per_class[torch.multinomial(
+            torch.ones(dataset.num_classes, dtype=float), remainder)] += 1
     # perform subsampling on each bucket
     sampled_indices = torch.tensor([], dtype=int)
     labels = labels.numpy()
@@ -125,20 +95,19 @@ def own_sampling(n, model, dataset, perfect=False, entropy_pagerank_weighting = 
     for label, indices in grouped_indices.items():
         selected_indices = sub_sampler(num_samples=int(min(samples_per_class[label], len(indices))),
                                        indices=indices,
-                                       logits=logits,
+                                       logits=model(dataset.x, dataset.edge_index, dataset.y, dataset.train_mask).detach(),
                                        ranks=dataset.pagerank,
                                        entropy_pagerank_weighting=entropy_pagerank_weighting)
         sampled_indices = torch.cat([sampled_indices,
                                      torch.from_numpy(selected_indices)])
     return sampled_indices
 
-def k_medoids_sampling(n, model, dataset, perfect=False, entopy_pagerank_weighting = 0.5):
+def k_medoids_sampling(n, model, dataset, perfect=False, entopy_pagerank_weighting = 0.5):    
     pass
 
-sampler = {
-    'random': random_sampling,
-    'own': own_sampling,
-    'k-medoids': k_medoids_sampling,}
+sampler = {'random': random_sampling,
+           'own': own_sampling,
+           'k-medoids': k_medoids_sampling,}
 
 """
 def classifier_sampling(n, model, dataset, labels):

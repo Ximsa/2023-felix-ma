@@ -45,7 +45,7 @@ def accuracy(predictions, true_labels, mask):
     else:
         return{"accuracy": accuracy_score(predictions[mask], true_labels[mask]),
                "macro-f1": f1_score(true_labels[mask], predictions[mask], average='macro'),
-               "confusion": confusion_matrix(true_labels[mask], predictions[mask])}
+               "confusion": "ommited for csv readability"}#confusion_matrix(true_labels[mask], predictions[mask])} # todo: fix
 
 def few_shot_training(optimizer, model, dataset, report_only=False):
     """
@@ -84,7 +84,7 @@ def few_shot_training(optimizer, model, dataset, report_only=False):
             validation += indices[:validation_size]
             training += indices[validation_size:]
         return training, validation
-    
+
     labels = None
     best_acc = 0
     no_increment_count = 0
@@ -98,12 +98,12 @@ def few_shot_training(optimizer, model, dataset, report_only=False):
         if(not report_only):
             model.train()
             optimizer.zero_grad()
-            logits = model(dataset.x, dataset.edge_index) # calculating logits updates the embeddings
+            logits = model(dataset.x, dataset.edge_index, dataset.y, dataset.train_mask) # calculating logits updates the embeddings
             loss = model.loss(dataset, logits, training)
             loss.backward()
             optimizer.step()
         model.eval()
-        labels = model(dataset.x, dataset.edge_index).argmax(dim=1)
+        labels = model(dataset.x, dataset.edge_index, dataset.y, dataset.train_mask).argmax(dim=1)
         acc = 0 if(len(validation) == 0) else accuracy_score(labels[validation], dataset.y[validation])
         if acc > best_acc:
             best_model_state = model.state_dict()
@@ -115,9 +115,9 @@ def few_shot_training(optimizer, model, dataset, report_only=False):
             else:
                 break
     model.load_state_dict(best_model_state)
-    return merge(keymap(lambda key: "labeled " + key, accuracy(labels, dataset.y, dataset.train_mask)),
-                 keymap(lambda key: "unlabeled " + key, accuracy(labels, dataset.y, dataset.val_mask)),
-                 keymap(lambda key: "test " + key, accuracy(labels, dataset.y, dataset.test_mask)))
+    return merge(keymap(lambda key: "Labeled " + key, accuracy(labels, dataset.y, dataset.train_mask)),
+                 keymap(lambda key: "Unlabeled " + key, accuracy(labels, dataset.y, dataset.val_mask)),
+                 keymap(lambda key: "Test " + key, accuracy(labels, dataset.y, dataset.test_mask)))
 
 def model_soup_trainig(optimizer, model, dataset, hyperparams):
     """
@@ -134,6 +134,10 @@ def model_soup_trainig(optimizer, model, dataset, hyperparams):
     distance_loss_weights = hyperparams['distance_loss_weights']
     original_model_state = model.state_dict()
     original_optimizer_state = optimizer.state_dict()
+    stats = []
+    for learning_rate, dropout, distance_loss_weight in itertools.product(learning_rates, dropouts, distance_loss_weights):
+        
+        stats.append(few_shot_training(optimizer, model, dataset, report_only=False)['accuracy'])
     pass
 
 def label_propagation(model, dataset, steps=3, uncertainty_threshold=0.2):
@@ -142,15 +146,18 @@ def label_propagation(model, dataset, steps=3, uncertainty_threshold=0.2):
     """
     dataset.propagated_mask = torch.zeros_like(dataset.propagated_mask, dtype=torch.bool)
     dataset.y = dataset.ground_truth.clone() # for sanity
-    propagator = LabelPropagation(num_layers=steps, alpha=1)
+    propagator = LabelPropagation(num_layers=steps, alpha=0.9)
     logits = propagator(dataset.ground_truth, dataset.edge_index, mask=dataset.train_mask)
     labels = logits.argmax(dim=-1)
     propagated_logits = logits.nonzero(as_tuple=True)[0]
     # remove uncertain logits
-    normalized_uncertainty_scores = torch.from_numpy(entropy(logits[propagated_logits].T) / math.log(dataset.num_classes))
-    propagated_logits = propagated_logits[torch.nonzero(normalized_uncertainty_scores <= uncertainty_threshold)]
-    dataset.propagated_mask[propagated_logits] = True
+    nonzero_indices = torch.nonzero(logits, as_tuple=True)[0]
+    normalized_uncertainty_scores = torch.ones(len(dataset.propagated_mask))
+    normalized_uncertainty_scores[nonzero_indices] = torch.from_numpy(entropy(logits[nonzero_indices].T) / math.log(dataset.num_classes))
+    valid_uncertainty_mask = normalized_uncertainty_scores < uncertainty_threshold
+    dataset.propagated_mask = torch.logical_and(valid_uncertainty_mask, dataset.val_mask)
     dataset.propagated_mask[dataset.test_mask] = False # prevent test leak
+    dataset.propagated_mask[dataset.train_mask] = False # already labeled vertices don't get a pseudolabel
     dataset.y[dataset.propagated_mask] = labels[dataset.propagated_mask]
     #print("Propagated", dataset.propagated_mask.sum(), "labels\twrong samples:", (dataset.y != dataset.ground_truth).sum(), "\t", uncertainty_threshold)
 
@@ -170,7 +177,7 @@ def run(model,
     :param dataset: Data for training, testing, and validation
     :param sampler: Sampler used for the active learner
     :param runs: Number of experiment repeats
-    :param budget: Number of labels moving from validation to training
+    :param budget: Number of samples moving from unlabeled to labeled
     :param seed: Initial seed for each strategy. Seed will change each run
     :param train_epochs: Number of epochs to train between samling
     :param learning_rate: Learning rate of the optimizer
@@ -180,19 +187,17 @@ def run(model,
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=5e-4)
         classifier = None
         sampler_fun = sampling.sampler[sampler]
-        initial_budget = budget
         # report initial stats
         run_stats = [merge(few_shot_training(optimizer, model, dataset, report_only=True),
-                           {"budget used": 0,
-                            "class distrubution": []})]
+                           {"Budget used": 0,
+                            "Class distrubution": []})]
         while(budget > 0):
             # ask active learner for vertices
-            sampled_indices = sampler_fun(min(budget, dataset.num_classes),
+            sampled_indices = sampler_fun(dataset.num_classes,
                                           model,
                                           dataset,
                                           False,
-                                          entropy_pagerank_weighting,
-                                          compensate_undersampled=False)
+                                          entropy_pagerank_weighting)
             budget -= len(sampled_indices)
             # move sampled vertices from the validation to the training set, also restore propagated indices if applicable
             dataset.val_mask[sampled_indices] = False
@@ -203,9 +208,9 @@ def run(model,
             # perform training
             run_stats.append(
                 merge(few_shot_training(optimizer, model, dataset),
-                      {"budget used": initial_budget - budget,
-                       "class distrubution": torch.bincount(dataset.ground_truth[dataset.train_mask]).numpy()}))
-        print(run_stats[-1]['test accuracy'])
+                      {"Budget used": int(dataset.train_mask.sum()),
+                       "Class distrubution": torch.bincount(dataset.ground_truth[dataset.train_mask]).numpy()}))
+        print(run_stats[-1]['Unlabeled accuracy'])
         return run_stats
     # perform experiments
     results = []
@@ -218,7 +223,8 @@ def run(model,
         dataset.train_mask, dataset.val_mask, dataset.test_mask = datasets.create_split(dataset, seed=seed) # update splits with given seed
         result = run_once(model(), copy.deepcopy(dataset), budget, learning_rate)
         result = list(map(partial(merge, {"seed": seeds[i]}), result))
-        results+=result
+        result.append({}) # empty row marks end of run
+        results += result
     return results
 
 
@@ -252,7 +258,6 @@ for sampler_name in sampling.sampler.keys():
 
 result = results_gpn[sampler_name]
 result
-
 
 #embeddings = result_gcn[0]['model'](dataset.x, dataset.edge_index)
 model = results_gpn['random'][0]['model']
