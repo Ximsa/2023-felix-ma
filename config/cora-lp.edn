@@ -1,12 +1,12 @@
-{"model_names" ["LP" "GCN" "GPN-GCN"]
- "dataset_names" ["PubMed"]
+{"model_names" ["LP"]
+ "dataset_names" ["Cora"]
  "samplers" ["own"]
- "budget" 30 ;; 3*10
+ "budget" 70 ;; 7 * 20
  "seed" 3133742069
  "repeats" 10
  "hyperparameters"
  {"entropy_pagerank_weighting" [-1 0 0.5 1]
-  "label_propagation_uncertainty_treshold" [0 0.2]
+  "label_propagation_uncertainty_treshold" [0.2]
   "hidden_dim_size" [64]
   "dropout" [0.5]
   "distance_loss_weight" [1]

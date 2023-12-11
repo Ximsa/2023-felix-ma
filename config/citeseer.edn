@@ -1,12 +1,12 @@
-{"model_names" ["GPN-GCN"]
+{"model_names" ["LP" "GCN" "GPN-GCN"]
  "dataset_names" ["CiteSeer"]
  "samplers" ["own"]
- "budget" 420
+ "budget" 60 ;; 6*10
  "seed" 3133742069
- "repeats" 20
+ "repeats" 10
  "hyperparameters"
  {"entropy_pagerank_weighting" [-1 0 0.5 1]
-  "label_propagation_uncertainty_treshold" [0.2]
+  "label_propagation_uncertainty_treshold" [0 0.2]
   "hidden_dim_size" [64]
   "dropout" [0.5]
   "distance_loss_weight" [1]
