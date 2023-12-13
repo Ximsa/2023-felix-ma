@@ -30,6 +30,8 @@ import datasets
 import sampling
 from util import cond, plot_embeddings, plot_clusterer
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 def accuracy(predictions, true_labels, mask):
     """Calculates accuracy, macro-f1 and the confusion matrix
 
@@ -38,6 +40,9 @@ def accuracy(predictions, true_labels, mask):
     :param mask: Mask for instance selection
     :returns: Dict of accuracy scores (acc, macro-f1, and confusion matrix)
     """
+    predictions = predictions.cpu()
+    true_labels = true_labels.cpu()
+    mask = mask.cpu()
     if mask.sum() == 0 or len(mask) == 0:
         return {"accuracy": 0,
                 "macro-f1": 0,
@@ -65,7 +70,7 @@ def few_shot_training(optimizer, model, dataset, report_only=False):
         :returns: indices for support/query/validation splits, support and query are further split by classes
         """
         train_prop_mask = torch.logical_or(dataset.train_mask, dataset.propagated_mask)
-        vertices = torch.stack([dataset.y,torch.arange(len(dataset.y))]).T[train_prop_mask]
+        vertices = torch.stack([dataset.y,torch.arange(len(dataset.y), device=device)]).T[train_prop_mask]
         buckets = {}
         training = []
         validation = []
@@ -104,7 +109,7 @@ def few_shot_training(optimizer, model, dataset, report_only=False):
             optimizer.step()
         model.eval()
         labels = model(dataset.x, dataset.edge_index, dataset.y, dataset.train_mask).argmax(dim=1)
-        acc = 0 if(len(validation) == 0) else accuracy_score(labels[validation], dataset.y[validation])
+        acc = 0 if(len(validation) == 0) else accuracy_score(labels[validation].cpu(), dataset.y[validation].cpu())
         if acc > best_acc:
             best_model_state = model.state_dict()
             best_acc = acc
@@ -140,7 +145,7 @@ def model_soup_trainig(optimizer, model, dataset, hyperparams):
         stats.append(few_shot_training(optimizer, model, dataset, report_only=False)['accuracy'])
     pass
 
-def label_propagation(model, dataset, steps=3, uncertainty_threshold=0.2):
+def label_propagation(model, dataset, steps=2, uncertainty_threshold=0.2):
     """
     Propagates trainig labels and adds their labels to y, modifies dataset
     """
@@ -152,8 +157,9 @@ def label_propagation(model, dataset, steps=3, uncertainty_threshold=0.2):
     propagated_logits = logits.nonzero(as_tuple=True)[0]
     # remove uncertain logits
     nonzero_indices = torch.nonzero(logits, as_tuple=True)[0]
-    normalized_uncertainty_scores = torch.ones(len(dataset.propagated_mask))
-    normalized_uncertainty_scores[nonzero_indices] = torch.from_numpy(entropy(logits[nonzero_indices].T) / math.log(dataset.num_classes))
+    normalized_uncertainty_scores = torch.ones(len(dataset.propagated_mask),device=device)
+    entrophies = entropy(logits[nonzero_indices].T.cpu()) / math.log(dataset.num_classes)
+    normalized_uncertainty_scores[nonzero_indices] = (torch.from_numpy(entrophies) / math.log(dataset.num_classes)).to(device)
     valid_uncertainty_mask = normalized_uncertainty_scores < uncertainty_threshold
     dataset.propagated_mask = torch.logical_and(valid_uncertainty_mask, dataset.val_mask)
     dataset.propagated_mask[dataset.test_mask] = False # prevent test leak
@@ -184,6 +190,15 @@ def run(model,
     :returns: run statistics
     """
     def run_once(model, dataset, budget, learning_rate):
+        """
+        Runs experiments on given model "runs" times with the same settings
+        
+        :param model: Constructed model
+        :param dataset: Data for training, testing, and validation
+        :param budget: Number of samples moving from unlabeled to labeled
+        :param learning_rate: Learning rate of the optimizer
+        :returns: single run statistics
+        """
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=5e-4)
         classifier = None
         sampler_fun = sampling.sampler[sampler]
@@ -193,11 +208,11 @@ def run(model,
                             "Class distrubution": []})]
         while(budget > 0):
             # ask active learner for vertices
-            sampled_indices = sampler_fun(dataset.num_classes,
-                                          model,
-                                          dataset,
-                                          False,
-                                          entropy_pagerank_weighting)
+            sampled_indices = sampler_fun(n=dataset.num_classes,
+                                          model=model,
+                                          dataset=dataset,
+                                          perfect=True,
+                                          entropy_pagerank_weighting=entropy_pagerank_weighting)
             budget -= len(sampled_indices)
             # move sampled vertices from the validation to the training set, also restore propagated indices if applicable
             dataset.val_mask[sampled_indices] = False
@@ -209,7 +224,7 @@ def run(model,
             run_stats.append(
                 merge(few_shot_training(optimizer, model, dataset),
                       {"Budget used": int(dataset.train_mask.sum()),
-                       "Class distrubution": torch.bincount(dataset.ground_truth[dataset.train_mask]).numpy()}))
+                       "Class distrubution": torch.bincount(dataset.ground_truth[dataset.train_mask]).cpu().numpy()}))
         print(run_stats[-1]['Unlabeled accuracy'])
         return run_stats
     # perform experiments
@@ -221,7 +236,9 @@ def run(model,
         np.random.seed(seeds[i])
         random.seed(seeds[i])
         dataset.train_mask, dataset.val_mask, dataset.test_mask = datasets.create_split(dataset, seed=seed) # update splits with given seed
-        result = run_once(model(), copy.deepcopy(dataset), budget, learning_rate)
+        model_instance = model()
+        model_instance = model_instance.to(device)
+        result = run_once(model_instance, copy.deepcopy(dataset), budget, learning_rate)
         result = list(map(partial(merge, {"seed": seeds[i]}), result))
         result.append({}) # empty row marks end of run
         results += result

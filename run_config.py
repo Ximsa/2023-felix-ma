@@ -15,7 +15,7 @@ from toolz.functoolz import thread_last, pipe
 from toolz.dicttoolz import merge, valmap, keyfilter, get_in, merge_with
 import models
 import datasets
-import main
+import train
 from util import select_keys
 
 def run_config(model_names, dataset_names, samplers, budget, seed, repeats, hyperparameters):
@@ -30,15 +30,15 @@ def run_config(model_names, dataset_names, samplers, budget, seed, repeats, hype
                                       (['hidden_dim_size',
                                         'dropout',
                                         'distance_loss_weight'])))
-        run_results = main.run(model=model,
-                               dataset=dataset,
-                               sampler=sampler_name,
-                               runs=repeats,
-                               label_propagation_uncertainty_treshold=hyperparams['label_propagation_uncertainty_treshold'],
-                               budget=budget,
-                               seed=seed,
-                               learning_rate=hyperparams['learning_rate'],
-                               entropy_pagerank_weighting=hyperparams['entropy_pagerank_weighting'])
+        run_results = train.run(model=model,
+                                dataset=dataset,
+                                sampler=sampler_name,
+                                runs=repeats,
+                                label_propagation_uncertainty_treshold=hyperparams['label_propagation_uncertainty_treshold'],
+                                budget=budget,
+                                seed=seed,
+                                learning_rate=hyperparams['learning_rate'],
+                                entropy_pagerank_weighting=hyperparams['entropy_pagerank_weighting'])
         # append additional run information to results
         return list(map(partial(merge,
                                 {'dataset_name': dataset_name,
@@ -48,6 +48,7 @@ def run_config(model_names, dataset_names, samplers, budget, seed, repeats, hype
     results = {}
     # perform jobs
     for model_name, dataset_name, sampler_name in itertools.product(model_names, dataset_names, samplers):
+        print(model_name, dataset_name, sampler_name)
         dataset = datasets.get_dataset(dataset_name)
         model_constructor = models.models[model_name]
         keys, values = zip(*hyperparameters.items())

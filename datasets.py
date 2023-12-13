@@ -57,15 +57,21 @@ def get_dataset(dataset_name):
     :param dataset_name: Case sensitive name of dataset
     :returns: Processed dataset
     """
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     load_function = datasets[dataset_name]
     dataset_location = ''.join(["/tmp/", dataset_name])
     dataset = load_function(root=dataset_location, name=dataset_name)[0]
-    dataset.y = torch.flatten(dataset.y)
+    dataset.edge_index = dataset.edge_index.to(device)
+    dataset.x = dataset.x.to(device)
+    dataset.y = torch.flatten(dataset.y).to(device)
     dataset.train_mask, dataset.val_mask, dataset.test_mask = create_split(dataset)
-    dataset.propagated_mask = torch.full_like(dataset.y, False, dtype=torch.bool)
+    dataset.train_mask = dataset.train_mask.to(device)
+    dataset.val_mask = dataset.val_mask.to(device)
+    dataset.test_mask = dataset.test_mask.to(device)
+    dataset.propagated_mask = torch.full_like(dataset.y, False, dtype=torch.bool).to(device)
     dataset.num_classes = len(dataset.y.unique())
     network = to_networkx(dataset)
-    dataset.pagerank = torch.tensor(list(pagerank(network).values()))
+    dataset.pagerank = torch.tensor(list(pagerank(network).values())).to(device)
     dataset.ground_truth = torch.clone(dataset.y)
     return dataset
 

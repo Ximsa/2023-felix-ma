@@ -1,0 +1,13 @@
+{"model_names" ["GPN-GCN" "GPN-GAT"]
+ "dataset_names" ["Cora", "CiteSeer"]
+ "samplers" ["own"]
+ "budget" 15
+ "seed" 3133742069
+ "repeats" 2
+ "hyperparameters"
+ {"entropy_pagerank_weighting" [-1 0.5]
+  "label_propagation_uncertainty_treshold" [0 0.2] ;; 0 disables label propagation
+  "hidden_dim_size" [64]
+  "dropout" [0.5]
+  "distance_loss_weight" [1]
+  "learning_rate" [0.005]}}

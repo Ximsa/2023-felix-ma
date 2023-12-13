@@ -1,0 +1,12 @@
+dataset_name;sampler_name;entropy_pagerank_weighting;label_propagation_uncertainty_treshold;hidden_dim_size;dropout;distance_loss_weight;learning_rate;seed;Labeled accuracy;Labeled macro-f1;Labeled confusion;Unlabeled accuracy;Unlabeled macro-f1;Unlabeled confusion;Test accuracy;Test macro-f1;Test confusion;Budget used;Class distrubution
+CiteSeer;own;0.5;0.2;64;0.5;1;0.005;20795212.0;0.0;0.0;[[]];0.15262252794496992;0.04413775954245928;ommited for csv readability;0.15284715284715283;0.04419410745233968;ommited for csv readability;0.0;[]
+CiteSeer;own;0.5;0.2;64;0.5;1;0.005;20795212.0;1.0;1.0;ommited for csv readability;0.309051724137931;0.2466759275707103;ommited for csv readability;0.3096903096903097;0.241536465576246;ommited for csv readability;6.0;[1 1 1 1 1 1]
+CiteSeer;own;0.5;0.2;64;0.5;1;0.005;20795212.0;1.0;1.0;ommited for csv readability;0.4343128781331029;0.4112370402014036;ommited for csv readability;0.4245754245754246;0.40798177509348865;ommited for csv readability;12.0;[2 2 2 2 2 2]
+CiteSeer;own;0.5;0.2;64;0.5;1;0.005;20795212.0;1.0;1.0;ommited for csv readability;0.554159445407279;0.47630992759331986;ommited for csv readability;0.5414585414585414;0.4644205304552238;ommited for csv readability;18.0;[3 3 3 3 3 3]
+
+
+CiteSeer;own;0.5;0.2;64;0.5;1;0.005;649695571.0;0.0;0.0;[[]];0.20077386070507308;0.055734574531567015;ommited for csv readability;0.2007992007992008;0.05574043261231282;ommited for csv readability;0.0;[]
+CiteSeer;own;0.5;0.2;64;0.5;1;0.005;649695571.0;1.0;1.0;ommited for csv readability;0.23793103448275862;0.1141070012078193;ommited for csv readability;0.23876123876123875;0.1179013995281664;ommited for csv readability;6.0;[1 1 1 1 1 1]
+CiteSeer;own;0.5;0.2;64;0.5;1;0.005;649695571.0;0.9166666666666666;0.9111111111111111;ommited for csv readability;0.34831460674157305;0.19172529469260124;ommited for csv readability;0.33766233766233766;0.18584351891526996;ommited for csv readability;12.0;[2 2 2 2 2 2]
+CiteSeer;own;0.5;0.2;64;0.5;1;0.005;649695571.0;0.8888888888888888;0.8857142857142857;ommited for csv readability;0.4207105719237435;0.3162040844278216;ommited for csv readability;0.4145854145854146;0.3135020929358884;ommited for csv readability;18.0;[3 3 3 3 3 3]
+

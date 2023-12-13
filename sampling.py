@@ -18,6 +18,8 @@ from itertools import permutations
 from torch_geometric.utils import degree
 import torch.nn.functional as F
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 def random_sampling(n, model, dataset, perfect=None, entropy_pagerank_weighting = None):
     """
     Selects vertices randomly.
@@ -44,7 +46,7 @@ def sub_sampler(num_samples, indices, logits, ranks, entropy_pagerank_weighting)
     """
     weights = torch.ones(len(indices))
     if(entropy_pagerank_weighting >= 0):
-        normalized_entropies = pipe(logits[indices].T,
+        normalized_entropies = pipe(logits[indices].T.cpu(),
                                     entropy,
                                     torch.from_numpy,
                                     partial(normalize, dim=0, p=1))
@@ -74,9 +76,9 @@ def own_sampling(n, model, dataset, perfect=False, entropy_pagerank_weighting = 
     exclude_mask = torch.logical_or(dataset.train_mask,
                                     dataset.test_mask)
     # perform K-Medoids on the unlabeled embeddings
-    clusterer = KMedoids(n_clusters=dataset.num_classes, init="k-medoids++").fit(model.get_embeddings(dataset.x, dataset.edge_index, dataset.ground_truth, dataset.train_mask)[dataset.val_mask].detach().numpy())
+    clusterer = KMedoids(n_clusters=dataset.num_classes, init="k-medoids++").fit(model.get_embeddings(dataset.x, dataset.edge_index, dataset.ground_truth, dataset.train_mask)[dataset.val_mask].detach().cpu().numpy())
     labels = torch.full_like(dataset.ground_truth, -1) # initialize with -1 to ignore those vertices
-    labels[dataset.val_mask] = torch.from_numpy(clusterer.labels_)
+    labels[dataset.val_mask] = torch.from_numpy(clusterer.labels_).to(device)
     if perfect: labels[dataset.val_mask] = dataset.ground_truth.clone()[dataset.val_mask]
     num_vertices = dataset.val_mask.sum()
     num_classes = dataset.num_classes
@@ -89,14 +91,15 @@ def own_sampling(n, model, dataset, perfect=False, entropy_pagerank_weighting = 
             torch.ones(dataset.num_classes, dtype=float), remainder)] += 1
     # perform subsampling on each bucket
     sampled_indices = torch.tensor([], dtype=int)
-    labels = labels.numpy()
+    labels = labels.cpu().numpy()
     grouped_indices = groupby(lambda x: labels[x], range(0, len(dataset.y))) # group by label
     grouped_indices = dissoc(grouped_indices, -1) # remove train and test
+    ranks = dataset.pagerank.cpu()
     for label, indices in grouped_indices.items():
         selected_indices = sub_sampler(num_samples=int(min(samples_per_class[label], len(indices))),
                                        indices=indices,
                                        logits=model(dataset.x, dataset.edge_index, dataset.y, dataset.train_mask).detach(),
-                                       ranks=dataset.pagerank,
+                                       ranks=ranks,
                                        entropy_pagerank_weighting=entropy_pagerank_weighting)
         sampled_indices = torch.cat([sampled_indices,
                                      torch.from_numpy(selected_indices)])

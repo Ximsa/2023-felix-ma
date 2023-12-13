@@ -4,6 +4,8 @@ import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, GATConv, SimpleConv, SGConv
 import torch_geometric.nn.models
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 class GPN(torch.nn.Module):
     def __init__(self,
                  dataset,
@@ -19,7 +21,7 @@ class GPN(torch.nn.Module):
         self.conv2 = GCNConv(hidden_dim_size, hidden_dim_size)
         self.dropout = dropout
         self.distance_loss_weight = distance_loss_weight
-        self.prototypes = torch.rand([dataset.num_classes, hidden_dim_size])
+        self.prototypes = torch.rand([dataset.num_classes, hidden_dim_size], device=device)
 
     def forward(self, x, edge_index, y=None, mask=None):
         self.embeddings = self.get_embeddings(x, edge_index)
@@ -58,7 +60,7 @@ class GPN(torch.nn.Module):
         # modeled after https://dl.acm.org/doi/pdf/10.1145/3607144, equation 6
         geometric_center = torch.mean(self.prototypes, dim=0)
         normalized_prototypes = F.normalize(self.prototypes - geometric_center)
-        cosine_distances = torch.mm(normalized_prototypes,normalized_prototypes.T) - torch.eye(normalized_prototypes.size(0))
+        cosine_distances = torch.mm(normalized_prototypes,normalized_prototypes.T) - torch.eye(normalized_prototypes.size(0), device=device)
         biggest_distances = torch.max(cosine_distances, dim=1).values
         loss = torch.mean(biggest_distances)
         return loss
@@ -66,7 +68,7 @@ class GPN(torch.nn.Module):
     def euclidean_loss(self):
         # modeled after https://dl.acm.org/doi/pdf/10.1145/3607144, equation 5
         prototype_distances = torch.cdist(self.prototypes, self.prototypes)
-        distance_scores = torch.exp(-prototype_distances) * (1 - torch.eye(prototype_distances.size(0)))
+        distance_scores = torch.exp(-prototype_distances) * (1 - torch.eye(prototype_distances.size(0), device=device))
         biggest_distances = torch.max(distance_scores, dim=1).values
         loss = torch.mean(biggest_distances)
         return loss
