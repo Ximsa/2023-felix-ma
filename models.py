@@ -1,9 +1,9 @@
 import torch
 import math
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, GATConv, SimpleConv, SGConv
 import torch_geometric.nn.models
-
+from torch_geometric.nn import GCNConv, GATConv, SimpleConv, SGConv
+from sklearn_extra.cluster import KMedoids
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 class GPN(torch.nn.Module):
@@ -21,7 +21,11 @@ class GPN(torch.nn.Module):
         self.conv2 = GCNConv(hidden_dim_size, hidden_dim_size)
         self.dropout = dropout
         self.distance_loss_weight = distance_loss_weight
-        self.prototypes = torch.rand([dataset.num_classes, hidden_dim_size], device=device)
+        # initialize prototypes with k-medoids
+        embeddings = self.get_embeddings(dataset.x, dataset.edge_index).detach()
+        clusterer = KMedoids(n_clusters=dataset.num_classes, init="k-medoids++").fit(embeddings[dataset.val_mask].cpu().numpy())
+        self.prototypes = torch.from_numpy(clusterer.cluster_centers_).to(device)
+        #self.prototypes = torch.rand([dataset.num_classes, hidden_dim_size], device=device)
 
     def forward(self, x, edge_index, y=None, mask=None):
         self.embeddings = self.get_embeddings(x, edge_index)
@@ -51,7 +55,8 @@ class GPN(torch.nn.Module):
                 prototypes.append(
                     (embeddings[labels==label] * normalized_pagerank).sum(dim=0))
             else:
-                prototypes.append(torch.zeros(embeddings.size(1)))
+                prototypes.append(self.prototypes.detach()[label])
+                #prototypes.append(torch.zeros(embeddings.size(1)))
                            
         prototypes = torch.stack(prototypes)
         return prototypes

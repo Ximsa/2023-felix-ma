@@ -34,33 +34,38 @@ def random_sampling(n, model, dataset, perfect=None, entropy_pagerank_weighting 
     return sampled_indices
     
     
-def sub_sampler(num_samples, indices, logits, ranks, entropy_pagerank_weighting):
+def sub_sampler(num_samples, indices, embeddings, ranks, entropy_pagerank_weighting):
     """
     Selects vertices based on entropy or pagerank from selected indices.
     :param num_samples: Number of samples to draw
     :param indices: indices to sample from
-    :param logits: for entropy calculation
+    :param embeddings: for entropy calculation
     :param ranks: for pagerank weighting
-    :param entopy_pagerank_weighting: subsampling strategy, -1 is random, 0 pagerank, 1 entropy 
+    :param entopy_pagerank_weighting: subsampling strategy, -1 is random, 0 pagerank, 1 entropy, >1: 1-medoid
     :returns: Selected vertex indices
     """
-    weights = torch.ones(len(indices))
-    if(entropy_pagerank_weighting >= 0):
-        normalized_entropies = pipe(logits[indices].T.cpu(),
-                                    entropy,
-                                    torch.from_numpy,
-                                    partial(normalize, dim=0, p=1))
-        normalized_pageranks = pipe(ranks[indices],
-                                    partial(normalize, dim=0, p=1))
-        weights = (normalized_pageranks * (1-entropy_pagerank_weighting)
-                   + normalized_entropies * entropy_pagerank_weighting)
+    if entropy_pagerank_weighting <= 1:
+        weights = torch.ones(len(indices))
+        if(entropy_pagerank_weighting >= 0):
+            normalized_entropies = pipe(embeddings[indices].T.cpu(),
+                                        entropy,
+                                        torch.from_numpy,
+                                        partial(normalize, dim=0, p=1))
+            normalized_pageranks = pipe(ranks[indices],
+                                        partial(normalize, dim=0, p=1))
+            weights = (normalized_pageranks * (1-entropy_pagerank_weighting)
+                       + normalized_entropies * entropy_pagerank_weighting)
     
-    normalized_weights = normalize(weights, dim=0, p=1).numpy()
-    selected_indices = np.random.choice(indices,
-                                        size=num_samples,
-                                        p=normalized_weights,
-                                        replace=False)
-    return selected_indices
+        normalized_weights = normalize(weights, dim=0, p=1).numpy()
+        selected_indices = np.random.choice(indices,
+                                            size=num_samples,
+                                            p=normalized_weights,
+                                            replace=False)
+        return selected_indices
+    else:
+        clusterer = KMedoids(n_clusters=num_samples, init="k-medoids++").fit(embeddings[indices].cpu())
+        selected_indices = np.array(indices)[clusterer.medoid_indices_]
+        return selected_indices
 
 def own_sampling(n, model, dataset, perfect=False, entropy_pagerank_weighting = 0.5):
     """
@@ -98,7 +103,7 @@ def own_sampling(n, model, dataset, perfect=False, entropy_pagerank_weighting = 
     for label, indices in grouped_indices.items():
         selected_indices = sub_sampler(num_samples=int(min(samples_per_class[label], len(indices))),
                                        indices=indices,
-                                       logits=model(dataset.x, dataset.edge_index, dataset.y, dataset.train_mask).detach(),
+                                       embeddings=model(dataset.x, dataset.edge_index, dataset.y, dataset.train_mask).detach(),
                                        ranks=ranks,
                                        entropy_pagerank_weighting=entropy_pagerank_weighting)
         sampled_indices = torch.cat([sampled_indices,
