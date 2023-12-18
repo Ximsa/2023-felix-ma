@@ -7,14 +7,14 @@ from collections import Counter
 from torch_geometric.utils import homophily, to_networkx
 from networkx import pagerank, diameter, connected_components
 from ogb.nodeproppred import PygNodePropPredDataset
-from torch_geometric.datasets import Planetoid, Reddit
+from torch_geometric.datasets import Planetoid, Reddit2
 from torch_geometric.nn.functional import gini
 from matplotlib import pyplot as plt
 
 datasets = {"Cora": Planetoid,
             "CiteSeer": Planetoid,
             "PubMed": Planetoid,
-            "Reddit": lambda name, **kwargs: Reddit(**kwargs),
+            "Reddit2": lambda name, **kwargs: Reddit2(**kwargs),
             "ogbn-arxiv": PygNodePropPredDataset}
 
 def create_split(data, train_portion=0.0, val_portion=0.7, seed=None):

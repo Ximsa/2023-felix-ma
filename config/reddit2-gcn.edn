@@ -1,7 +1,7 @@
-{"model_names" ["LP" "GCN" "GPN-GCN"]
- "dataset_names" ["Cora"]
+{"model_names" ["GCN"]
+ "dataset_names" ["Reddit2"]
  "samplers" ["own"]
- "budget" 140 ;; 7 * 10
+ "budget" 20 ;; 20 classes
  "seed" 3133742069
  "repeats" 10
  "hyperparameters"

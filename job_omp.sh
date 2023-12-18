@@ -4,9 +4,9 @@
 #SBATCH --output=testout.log
 #SBATCH --error=testerr.log
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=64
+#SBATCH --cpus-per-task=80
 #SBATCH --time=04:00:00
-#SBATCH --export=ALL,EXECUTABLE="python3.9 run_config.py config/all.edn"
+#SBATCH --export=ALL,EXECUTABLE="python3.9 -u run_config.py"
 #SBATCH --gres=gpu:1
 #SBATCH -J OpenMP_Test
 #Usually you should set

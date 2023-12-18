@@ -1,5 +1,5 @@
-{"model_names" ["LP" "GCN" "GPN-GCN"]
- "dataset_names" ["Cora" "CiteSeer" "PubMed" "Reddit2" "ogbn-arxiv"]
+{"model_names" ["GPN-GCN"]
+ "dataset_names" ["ogbn-arxiv"]
  "samplers" ["own"]
  "budget" 20 ;; 20 classes
  "seed" 3133742069

@@ -1,5 +1,5 @@
 {"model_names" ["LP"]
- "dataset_names" ["Cora"]
+ "dataset_names" ["Reddit2"]
  "samplers" ["own"]
  "budget" 20 ;; 20 classes
  "seed" 3133742069
