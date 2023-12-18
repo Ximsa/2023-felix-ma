@@ -1,0 +1,80 @@
+Threads: 20
+time python3.9 -u run_config.py config/pubmed-gcn.edn
+{"model_names" ["GCN"]
+ "dataset_names" ["PubMed"]
+ "samplers" ["own"]
+ "budget" 20 ;; 20 classes
+ "seed" 3133742069
+ "repeats" 10
+ "hyperparameters"
+ {"entropy_pagerank_weighting" [-1 0 0.5 1 2]
+  "label_propagation_uncertainty_treshold" [0 0.2] ;; 0 disables label propagation
+  "hidden_dim_size" [64]
+  "dropout" [0.5]
+  "distance_loss_weight" [1]
+  "learning_rate" [0.005]}}
+
+GCN PubMed own
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.pubmed.x
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.pubmed.tx
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.pubmed.allx
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.pubmed.y
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.pubmed.ty
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.pubmed.ally
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.pubmed.graph
+Downloading https://github.com/kimiyoung/planetoid/raw/master/data/ind.pubmed.test.index
+Processing...
+Done!
+0.7906265919510953
+0.7670475220144094
+0.7837129757659559
+0.7750527618077286
+0.7901899425078233
+0.783567425951532
+0.7543119132523106
+0.7032967032967034
+0.7401935812531839
+0.749435994469107
+0.4044829342842588
+0.7337166145113165
+0.793246488610727
+0.7807292045702642
+0.7917182155592751
+0.6938359653591442
+0.782184702714504
+0.6645076777527109
+0.749727094097955
+0.7487082453969871
+0.7818208281784441
+0.7800742304053563
+0.7260752492540572
+0.7525653154792228
+0.750163743541227
+0.7981224073939306
+0.7792737064260243
+0.7459427989229314
+0.7753438614365766
+0.771632341168765
+0.7794192562404483
+0.8091841932901536
+0.6278291245178662
+0.7663197729422895
+0.8199548795575285
+0.8127501637435413
+0.8190088057637727
+0.7310239429444727
+0.7598428062004221
+0.7416490793974237
+0.7784004075394804
+0.7888799941780075
+0.7663925478495015
+0.7815297285495961
+0.7920093151881231
+0.7986318317444145
+0.7735244887562769
+0.7541663634378866
+0.7990684811876865
+0.7562040608398224
+0.706717123935667
+0.8005239793319263
+0.7368459355214322
