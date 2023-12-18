@@ -1,10 +1,14 @@
 #!/bin/bash
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=felix.burr@uni-ulm.de
+#SBATCH --output=testout.log
+#SBATCH --error=testerr.log
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=80
-#SBATCH --time=40:00
-#SBATCH --export=ALL,EXECUTABLE="python3.9 tune.py"
+#SBATCH --cpus-per-task=64
+#SBATCH --time=04:00:00
+#SBATCH --export=ALL,EXECUTABLE="python3.9 run_config.py config/all.edn"
+#SBATCH --gres=gpu:1
 #SBATCH -J OpenMP_Test
-
 #Usually you should set
 export KMP_AFFINITY=compact,1,0
 #export KMP_AFFINITY=verbose,compact,1,0 prints messages concerning the supported affinity

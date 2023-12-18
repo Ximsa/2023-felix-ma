@@ -213,7 +213,9 @@ def run(model,
                                           dataset=dataset,
                                           perfect=True,
                                           entropy_pagerank_weighting=entropy_pagerank_weighting)
-            budget -= len(sampled_indices)
+            if len(sampled_indices) != dataset.num_classes:
+                print("Warning: didn't sample |C| vertices")
+            budget -= 1
             # move sampled vertices from the validation to the training set, also restore propagated indices if applicable
             dataset.val_mask[sampled_indices] = False
             dataset.train_mask[sampled_indices] = True

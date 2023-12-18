@@ -1,9 +1,9 @@
 {"model_names" ["GCN"]
  "dataset_names" ["Cora"]
  "samplers" ["own"]
- "budget" 140
+ "budget" 5
  "seed" 3133742069
- "repeats" 10
+ "repeats" 2
  "hyperparameters"
  {"entropy_pagerank_weighting" [2]
   "label_propagation_uncertainty_treshold" [0.2] ;; 0 disables label propagation
