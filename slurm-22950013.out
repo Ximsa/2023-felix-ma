@@ -1,0 +1,36 @@
+Threads: 20
+time python3.9 -u run_config.py config/reddit2-gpn-gcn.edn
+{"model_names" ["GPN-GCN"]
+ "dataset_names" ["Reddit2"]
+ "samplers" ["own"]
+ "budget" 20 ;; 20 classes
+ "seed" 3133742069
+ "repeats" 10
+ "hyperparameters"
+ {"entropy_pagerank_weighting" [-1 0 0.5 1 2]
+  "label_propagation_uncertainty_treshold" [0 0.2] ;; 0 disables label propagation
+  "hidden_dim_size" [64]
+  "dropout" [0.5]
+  "distance_loss_weight" [1]
+  "learning_rate" [0.005]}}
+
+GPN-GCN Reddit2 own
+Command terminated by signal 9
+302.84user 347.28system 5:29.91elapsed 197%CPU (0avgtext+0avgdata 96114712maxresident)k
+2203792inputs+24outputs (3514major+10693203minor)pagefaults 0swaps
+slurmstepd: error: Detected 1 oom_kill event in StepId=22950013.batch. Some of the step tasks have been OOM Killed.
+
+============================= JOB FEEDBACK =============================
+
+NodeName=uc2n517
+Job ID: 22950013
+Cluster: uc2
+User/Group: ul_rvl52/ul_student
+State: OUT_OF_MEMORY (exit code 0)
+Nodes: 1
+Cores per node: 20
+CPU Utilized: 00:10:50
+CPU Efficiency: 9.00% of 02:00:20 core-walltime
+Job Wall-clock time: 00:06:01
+Memory Utilized: 91.51 GB
+Memory Efficiency: 99.68% of 91.80 GB
