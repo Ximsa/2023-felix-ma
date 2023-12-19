@@ -29,3 +29,21 @@ Saving...
 Done!
 0.17869672695146918
 0.24640032620052837
+0.19629796379513928
+0.16253960703030096
+slurmstepd: error: *** JOB 22950006 ON uc2n517 CANCELLED AT 2023-12-18T19:46:00 DUE TO TIME LIMIT ***
+
+============================= JOB FEEDBACK =============================
+
+NodeName=uc2n517
+Job ID: 22950006
+Cluster: uc2
+User/Group: ul_rvl52/ul_student
+State: TIMEOUT (exit code 0)
+Nodes: 1
+Cores per node: 20
+CPU Utilized: 00:00:00
+CPU Efficiency: 0.00% of 5-00:04:00 core-walltime
+Job Wall-clock time: 06:00:12
+Memory Utilized: 67.20 GB
+Memory Efficiency: 73.20% of 91.80 GB
