@@ -9,6 +9,7 @@ from networkx import pagerank, diameter, connected_components
 from ogb.nodeproppred import PygNodePropPredDataset
 from torch_geometric.datasets import Planetoid, Reddit2
 from torch_geometric.nn.functional import gini
+from torch_geometric.utils import to_undirected, is_undirected
 from matplotlib import pyplot as plt
 
 datasets = {"Cora": Planetoid,
@@ -61,7 +62,8 @@ def get_dataset(dataset_name):
     load_function = datasets[dataset_name]
     dataset_location = ''.join(["/tmp/", dataset_name])
     dataset = load_function(root=dataset_location, name=dataset_name)[0]
-    dataset.edge_index = dataset.edge_index.to(device)
+    return dataset
+    dataset.edge_index = to_undirected(dataset.edge_index.to(device))
     dataset.x = dataset.x.to(device)
     dataset.y = torch.flatten(dataset.y).to(device)
     dataset.train_mask, dataset.val_mask, dataset.test_mask = create_split(dataset)
