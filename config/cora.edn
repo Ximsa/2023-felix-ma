@@ -1,5 +1,5 @@
-{"model_names" ["GPN-GCN"]
- "dataset_names" ["PubMed"]
+{"model_names" ["GPN-GCN", "GCN", "LP"]
+ "dataset_names" ["Cora"]
  "samplers" ["own"]
  "num_steps" 20 ;; number of sampler runs
  "samples_per_step" 1 ;; in multiples of #classes

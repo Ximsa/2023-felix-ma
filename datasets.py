@@ -12,6 +12,11 @@ from torch_geometric.nn.functional import gini
 from torch_geometric.utils import to_undirected, is_undirected
 from matplotlib import pyplot as plt
 
+#disable cuda
+#torch.cuda.is_available = lambda: False
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 datasets = {"Cora": Planetoid,
             "CiteSeer": Planetoid,
             "PubMed": Planetoid,
@@ -58,11 +63,9 @@ def get_dataset(dataset_name):
     :param dataset_name: Case sensitive name of dataset
     :returns: Processed dataset
     """
-    device = "cuda" if torch.cuda.is_available() else "cpu"
     load_function = datasets[dataset_name]
     dataset_location = ''.join(["/tmp/", dataset_name])
     dataset = load_function(root=dataset_location, name=dataset_name)[0]
-    return dataset
     dataset.edge_index = to_undirected(dataset.edge_index.to(device))
     dataset.x = dataset.x.to(device)
     dataset.y = torch.flatten(dataset.y).to(device)

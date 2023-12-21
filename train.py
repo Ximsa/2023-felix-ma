@@ -30,6 +30,9 @@ import datasets
 import sampling
 from util import cond, plot_embeddings, plot_clusterer
 
+#disable cuda
+#torch.cuda.is_available = lambda: False
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 def accuracy(predictions, true_labels, mask):
@@ -172,10 +175,11 @@ def run(model,
         sampler='own',
         runs=10,
         label_propagation_uncertainty_treshold=0.2,
-        budget=100,
+        num_steps=10,
+        samples_per_step=1,
         seed=133742069,
         learning_rate=0.001,
-        entropy_pagerank_weighting = 0.5):
+        subsampler = "random"):
     """
     Runs experiments on given model "runs" times with the same settings
 
@@ -189,7 +193,7 @@ def run(model,
     :param learning_rate: Learning rate of the optimizer
     :returns: run statistics
     """
-    def run_once(model, dataset, budget, learning_rate):
+    def run_once(model, dataset):
         """
         Runs experiments on given model "runs" times with the same settings
         
@@ -206,15 +210,16 @@ def run(model,
         run_stats = [merge(few_shot_training(optimizer, model, dataset, report_only=True),
                            {"Budget used": 0,
                             "Class distrubution": []})]
+        budget = num_steps
         while(budget > 0):
             # ask active learner for vertices
-            sampled_indices = sampler_fun(n=dataset.num_classes,
+            sampled_indices = sampler_fun(n=dataset.num_classes * samples_per_step,
                                           model=model,
                                           dataset=dataset,
                                           perfect=True,
-                                          entropy_pagerank_weighting=entropy_pagerank_weighting)
-            if len(sampled_indices) != dataset.num_classes:
-                print("Warning: didn't sample |C| vertices")
+                                          subsampler=subsampler)
+            if len(sampled_indices) != dataset.num_classes * samples_per_step:
+                print("Warning: didn't sample |C| vertices: ", len(sampled_indices), "/", dataset.num_classes * samples_per_step)
             budget -= 1
             # move sampled vertices from the validation to the training set, also restore propagated indices if applicable
             dataset.val_mask[sampled_indices] = False
@@ -240,7 +245,7 @@ def run(model,
         dataset.train_mask, dataset.val_mask, dataset.test_mask = datasets.create_split(dataset, seed=seed) # update splits with given seed
         model_instance = model()
         model_instance = model_instance.to(device)
-        result = run_once(model_instance, copy.deepcopy(dataset), budget, learning_rate)
+        result = run_once(model_instance, copy.deepcopy(dataset))
         result = list(map(partial(merge, {"seed": seeds[i]}), result))
         result.append({}) # empty row marks end of run
         results += result

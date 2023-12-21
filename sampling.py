@@ -18,9 +18,12 @@ from itertools import permutations
 from torch_geometric.utils import degree
 import torch.nn.functional as F
 
+#disable cuda
+#torch.cuda.is_available = lambda: False
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-def random_sampling(n, model, dataset, perfect=None, entropy_pagerank_weighting = None):
+def random_sampling(n, model, dataset, perfect=None, subsampler=None):
     """
     Selects vertices randomly.
     :param n: Number of samples to draw
@@ -34,16 +37,21 @@ def random_sampling(n, model, dataset, perfect=None, entropy_pagerank_weighting 
     return sampled_indices
     
     
-def sub_sampler(num_samples, indices, embeddings, ranks, entropy_pagerank_weighting):
+def sub_sampler(num_samples, indices, embeddings, ranks, subsampler):
     """
     Selects vertices based on entropy or pagerank from selected indices.
     :param num_samples: Number of samples to draw
     :param indices: indices to sample from
     :param embeddings: for entropy calculation
     :param ranks: for pagerank weighting
-    :param entopy_pagerank_weighting: subsampling strategy, -1 is random, 0 pagerank, 1 entropy, >1: 1-medoid
+    :param subsampler: subsampling strategy:random, pagerank, entropy, medoids
     :returns: Selected vertex indices
     """
+    entropy_pagerank_weighting = {"random": -1,
+                                  "pagerank": 0,
+                                  "own": 0.5,
+                                  "entropy": 1,
+                                  "medoids": 2,}[subsampler]
     if entropy_pagerank_weighting <= 1:
         weights = torch.ones(len(indices))
         if(entropy_pagerank_weighting >= 0):
@@ -67,14 +75,14 @@ def sub_sampler(num_samples, indices, embeddings, ranks, entropy_pagerank_weight
         selected_indices = np.array(indices)[clusterer.medoid_indices_]
         return selected_indices
 
-def own_sampling(n, model, dataset, perfect=False, entropy_pagerank_weighting = 0.5):
+def own_sampling(n, model, dataset, perfect=False, subsampler="random"):
     """
     Selects vertices of a dataset using the model as classifier to be included into the test set.
     :param n: Number of samples to draw
     :param model: model
     :param dataset: Data to sample from
     :param perfect: use oracle to get class assignments
-    :param entopy_pagerank_weighting: subsampling strategy, -1 is random, 0 pagerank, 1 entropy 
+    :param subsampler: subsampling strategy: random, pagerank, entropy, own, medoids
     :param compensate_undersampled: tries to sample more from undersampled classes
     :returns: Selected vertex indices
     """
@@ -105,12 +113,12 @@ def own_sampling(n, model, dataset, perfect=False, entropy_pagerank_weighting = 
                                        indices=indices,
                                        embeddings=model(dataset.x, dataset.edge_index, dataset.y, dataset.train_mask).detach(),
                                        ranks=ranks,
-                                       entropy_pagerank_weighting=entropy_pagerank_weighting)
+                                       subsampler=subsampler)
         sampled_indices = torch.cat([sampled_indices,
                                      torch.from_numpy(selected_indices)])
     return sampled_indices
 
-def k_medoids_sampling(n, model, dataset, perfect=False, entopy_pagerank_weighting = 0.5):    
+def k_medoids_sampling(n, model, dataset, perfect=False, subsampler=None):    
     pass
 
 sampler = {'random': random_sampling,

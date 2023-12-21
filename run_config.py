@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import torch
@@ -18,7 +19,7 @@ import datasets
 import train
 from util import select_keys
 
-def run_config(model_names, dataset_names, samplers, budget, seed, repeats, hyperparameters):
+def run_config(model_names, dataset_names, samplers, num_steps, samples_per_step, seed, repeats, hyperparameters):
     """
     Runs experiments as described in given run config
     :returns: dataframe with run statistics
@@ -35,10 +36,11 @@ def run_config(model_names, dataset_names, samplers, budget, seed, repeats, hype
                                 sampler=sampler_name,
                                 runs=repeats,
                                 label_propagation_uncertainty_treshold=hyperparams['label_propagation_uncertainty_treshold'],
-                                budget=budget,
+                                num_steps=num_steps,
+                                samples_per_step=samples_per_step,
                                 seed=seed,
                                 learning_rate=hyperparams['learning_rate'],
-                                entropy_pagerank_weighting=hyperparams['entropy_pagerank_weighting'])
+                                subsampler=hyperparams['subsampler'])
         # append additional run information to results
         return list(map(partial(merge,
                                 {'dataset_name': dataset_name,
@@ -60,9 +62,19 @@ def run_config(model_names, dataset_names, samplers, budget, seed, repeats, hype
                                         sampler_name,
                                         config)
             result = pandas.DataFrame.from_records(result)
-            name = "-".join([dataset_name, model_name, sampler_name] + list(map(str, config.values())))
-            results[name] = (dataset_name, result)
-    return results
+            # save compete result
+            filepath = "results/" + dataset_name + "/"
+            os.makedirs(filepath, exist_ok=True)
+            properties = [model_name,sampler_name,config['subsampler']]
+            if config['label_propagation_uncertainty_treshold'] != 0:
+                properties.append("LP")
+            filename = filepath + '-'.join(properties) + ".csv"
+            csv = result.to_csv(sep=";", index=False)
+            # postprocessing: seperate runs by empty rows
+            csv = [line if line.find(";;") == -1 else "\n" for line in csv.splitlines()]
+            f = open(filename, "w")
+            f.write("\n".join(csv))
+            f.close()
 
 def load_and_run_config(filename):
     with open(filename, "r") as f:
@@ -72,15 +84,7 @@ def load_and_run_config(filename):
         return run_config(**config)
 
 if __name__ == "__main__":
-    results = load_and_run_config(sys.argv[1])
-    for name, (dataset_name, result) in results.items():
-        filename = "results/"+ dataset_name + "/" + name + ".csv"
-        csv = result.to_csv(sep=";", index=False)
-        # postprocessing: seperate runs by empty rows
-        csv = [line if line.find(";;") == -1 else "\n" for line in csv.splitlines()]
-        f = open(filename, "w")
-        f.write("\n".join(csv))
-        f.close()
+    load_and_run_config(sys.argv[1])
 
 """
     #dataset = datasets.get_dataset('Cora')

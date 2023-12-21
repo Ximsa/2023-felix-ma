@@ -4,6 +4,10 @@ import torch.nn.functional as F
 import torch_geometric.nn.models
 from torch_geometric.nn import GCNConv, GATConv, SimpleConv, SGConv
 from sklearn_extra.cluster import KMedoids
+from torch.nn.functional import normalize
+#disable cuda
+#torch.cuda.is_available = lambda: False
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 class GPN(torch.nn.Module):
@@ -17,15 +21,15 @@ class GPN(torch.nn.Module):
         num_node_features = dataset.num_node_features
         num_classes = dataset.num_classes
         self.pagerank_scores = dataset.pagerank
-        self.conv1 = GCNConv(num_node_features, hidden_dim_size)
-        self.conv2 = GCNConv(hidden_dim_size, hidden_dim_size)
+        self.conv1 = GCNConv(num_node_features, hidden_dim_size).to(device)
+        self.conv2 = GCNConv(hidden_dim_size, hidden_dim_size).to(device)
         self.dropout = dropout
         self.distance_loss_weight = distance_loss_weight
         # initialize prototypes with k-medoids
         embeddings = self.get_embeddings(dataset.x, dataset.edge_index).detach()
         clusterer = KMedoids(n_clusters=dataset.num_classes, init="k-medoids++").fit(embeddings[dataset.val_mask].cpu().numpy())
         self.prototypes = torch.from_numpy(clusterer.cluster_centers_).to(device)
-        #self.prototypes = torch.rand([dataset.num_classes, hidden_dim_size], device=device)
+        #self.prototypes = torch.rand([dataset.num_classes, hidden_dim_size], device=device).to(device)
 
     def forward(self, x, edge_index, y=None, mask=None):
         self.embeddings = self.get_embeddings(x, edge_index)
@@ -41,6 +45,7 @@ class GPN(torch.nn.Module):
         x = F.relu(x)
         x = F.dropout(x, self.dropout, training=self.training)
         x = self.conv2(x, edge_index)
+        x = normalize(x)
         return x
         
     def get_prototypes(self, labels, mask, num_classes):

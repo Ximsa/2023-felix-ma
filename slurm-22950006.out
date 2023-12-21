@@ -1,49 +1,0 @@
-Threads: 20
-time python3.9 -u run_config.py config/ogbn-arxiv-gcn.edn
-{"model_names" ["GCN"]
- "dataset_names" ["ogbn-arxiv"]
- "samplers" ["own"]
- "budget" 20 ;; 20 classes
- "seed" 3133742069
- "repeats" 10
- "hyperparameters"
- {"entropy_pagerank_weighting" [-1 0 0.5 1 2]
-  "label_propagation_uncertainty_treshold" [0 0.2] ;; 0 disables label propagation
-  "hidden_dim_size" [64]
-  "dropout" [0.5]
-  "distance_loss_weight" [1]
-  "learning_rate" [0.005]}}
-
-GCN ogbn-arxiv own
-Downloading http://snap.stanford.edu/ogb/data/nodeproppred/arxiv.zip
-  0%|          | 0/81 [00:00<?, ?it/s]Downloaded 0.00 GB:   0%|          | 0/81 [00:01<?, ?it/s]Downloaded 0.00 GB:   1%|          | 1/81 [00:01<02:36,  1.96s/it]Downloaded 0.00 GB:   1%|          | 1/81 [00:02<02:36,  1.96s/it]Downloaded 0.00 GB:   2%|▏         | 2/81 [00:02<01:24,  1.07s/it]Downloaded 0.00 GB:   2%|▏         | 2/81 [00:02<01:24,  1.07s/it]Downloaded 0.00 GB:   4%|▎         | 3/81 [00:02<00:56,  1.39it/s]Downloaded 0.00 GB:   4%|▎         | 3/81 [00:03<00:56,  1.39it/s]Downloaded 0.00 GB:   5%|▍         | 4/81 [00:03<00:42,  1.80it/s]Downloaded 0.00 GB:   5%|▍         | 4/81 [00:03<00:42,  1.80it/s]Downloaded 0.00 GB:   6%|▌         | 5/81 [00:03<00:31,  2.44it/s]Downloaded 0.01 GB:   6%|▌         | 5/81 [00:03<00:31,  2.44it/s]Downloaded 0.01 GB:   7%|▋         | 6/81 [00:03<00:24,  3.11it/s]Downloaded 0.01 GB:   7%|▋         | 6/81 [00:03<00:24,  3.11it/s]Downloaded 0.01 GB:   9%|▊         | 7/81 [00:03<00:19,  3.77it/s]Downloaded 0.01 GB:   9%|▊         | 7/81 [00:03<00:19,  3.77it/s]Downloaded 0.01 GB:   9%|▊         | 7/81 [00:03<00:19,  3.77it/s]Downloaded 0.01 GB:  11%|█         | 9/81 [00:03<00:12,  5.72it/s]Downloaded 0.01 GB:  11%|█         | 9/81 [00:03<00:12,  5.72it/s]Downloaded 0.01 GB:  11%|█         | 9/81 [00:03<00:12,  5.72it/s]Downloaded 0.01 GB:  14%|█▎        | 11/81 [00:03<00:09,  7.43it/s]Downloaded 0.01 GB:  14%|█▎        | 11/81 [00:03<00:09,  7.43it/s]Downloaded 0.01 GB:  14%|█▎        | 11/81 [00:03<00:09,  7.43it/s]Downloaded 0.01 GB:  16%|█▌        | 13/81 [00:03<00:07,  8.88it/s]Downloaded 0.01 GB:  16%|█▌        | 13/81 [00:03<00:07,  8.88it/s]Downloaded 0.01 GB:  16%|█▌        | 13/81 [00:04<00:07,  8.88it/s]Downloaded 0.01 GB:  19%|█▊        | 15/81 [00:04<00:06, 10.11it/s]Downloaded 0.02 GB:  19%|█▊        | 15/81 [00:04<00:06, 10.11it/s]Downloaded 0.02 GB:  19%|█▊        | 15/81 [00:04<00:06, 10.11it/s]Downloaded 0.02 GB:  19%|█▊        | 15/81 [00:04<00:06, 10.11it/s]Downloaded 0.02 GB:  22%|██▏       | 18/81 [00:04<00:04, 12.76it/s]Downloaded 0.02 GB:  22%|██▏       | 18/81 [00:04<00:04, 12.76it/s]Downloaded 0.02 GB:  22%|██▏       | 18/81 [00:04<00:04, 12.76it/s]Downloaded 0.02 GB:  22%|██▏       | 18/81 [00:04<00:04, 12.76it/s]Downloaded 0.02 GB:  26%|██▌       | 21/81 [00:04<00:04, 14.55it/s]Downloaded 0.02 GB:  26%|██▌       | 21/81 [00:04<00:04, 14.55it/s]Downloaded 0.02 GB:  26%|██▌       | 21/81 [00:04<00:04, 14.55it/s]Downloaded 0.02 GB:  26%|██▌       | 21/81 [00:04<00:04, 14.55it/s]Downloaded 0.02 GB:  30%|██▉       | 24/81 [00:04<00:03, 15.91it/s]Downloaded 0.02 GB:  30%|██▉       | 24/81 [00:04<00:03, 15.91it/s]Downloaded 0.03 GB:  30%|██▉       | 24/81 [00:04<00:03, 15.91it/s]Downloaded 0.03 GB:  30%|██▉       | 24/81 [00:04<00:03, 15.91it/s]Downloaded 0.03 GB:  33%|███▎      | 27/81 [00:04<00:03, 16.87it/s]Downloaded 0.03 GB:  33%|███▎      | 27/81 [00:04<00:03, 16.87it/s]Downloaded 0.03 GB:  33%|███▎      | 27/81 [00:04<00:03, 16.87it/s]Downloaded 0.03 GB:  36%|███▌      | 29/81 [00:04<00:03, 15.93it/s]Downloaded 0.03 GB:  36%|███▌      | 29/81 [00:04<00:03, 15.93it/s]Downloaded 0.03 GB:  36%|███▌      | 29/81 [00:04<00:03, 15.93it/s]Downloaded 0.03 GB:  36%|███▌      | 29/81 [00:04<00:03, 15.93it/s]Downloaded 0.03 GB:  40%|███▉      | 32/81 [00:04<00:02, 16.91it/s]Downloaded 0.03 GB:  40%|███▉      | 32/81 [00:05<00:02, 16.91it/s]Downloaded 0.03 GB:  40%|███▉      | 32/81 [00:05<00:02, 16.91it/s]Downloaded 0.03 GB:  42%|████▏     | 34/81 [00:05<00:02, 15.94it/s]Downloaded 0.03 GB:  42%|████▏     | 34/81 [00:05<00:02, 15.94it/s]Downloaded 0.04 GB:  42%|████▏     | 34/81 [00:05<00:02, 15.94it/s]Downloaded 0.04 GB:  42%|████▏     | 34/81 [00:05<00:02, 15.94it/s]Downloaded 0.04 GB:  46%|████▌     | 37/81 [00:05<00:02, 16.92it/s]Downloaded 0.04 GB:  46%|████▌     | 37/81 [00:05<00:02, 16.92it/s]Downloaded 0.04 GB:  46%|████▌     | 37/81 [00:05<00:02, 16.92it/s]Downloaded 0.04 GB:  48%|████▊     | 39/81 [00:05<00:02, 15.94it/s]Downloaded 0.04 GB:  48%|████▊     | 39/81 [00:05<00:02, 15.94it/s]Downloaded 0.04 GB:  48%|████▊     | 39/81 [00:05<00:02, 15.94it/s]Downloaded 0.04 GB:  48%|████▊     | 39/81 [00:05<00:02, 15.94it/s]Downloaded 0.04 GB:  52%|█████▏    | 42/81 [00:05<00:02, 16.93it/s]Downloaded 0.04 GB:  52%|█████▏    | 42/81 [00:05<00:02, 16.93it/s]Downloaded 0.04 GB:  52%|█████▏    | 42/81 [00:05<00:02, 16.93it/s]Downloaded 0.04 GB:  54%|█████▍    | 44/81 [00:05<00:02, 15.94it/s]Downloaded 0.04 GB:  54%|█████▍    | 44/81 [00:05<00:02, 15.94it/s]Downloaded 0.04 GB:  54%|█████▍    | 44/81 [00:05<00:02, 15.94it/s]Downloaded 0.05 GB:  54%|█████▍    | 44/81 [00:05<00:02, 15.94it/s]Downloaded 0.05 GB:  58%|█████▊    | 47/81 [00:05<00:02, 16.93it/s]Downloaded 0.05 GB:  58%|█████▊    | 47/81 [00:05<00:02, 16.93it/s]Downloaded 0.05 GB:  58%|█████▊    | 47/81 [00:06<00:02, 16.93it/s]Downloaded 0.05 GB:  60%|██████    | 49/81 [00:06<00:02, 15.95it/s]Downloaded 0.05 GB:  60%|██████    | 49/81 [00:06<00:02, 15.95it/s]Downloaded 0.05 GB:  60%|██████    | 49/81 [00:06<00:02, 15.95it/s]Downloaded 0.05 GB:  60%|██████    | 49/81 [00:06<00:02, 15.95it/s]Downloaded 0.05 GB:  64%|██████▍   | 52/81 [00:06<00:01, 16.92it/s]Downloaded 0.05 GB:  64%|██████▍   | 52/81 [00:06<00:01, 16.92it/s]Downloaded 0.05 GB:  64%|██████▍   | 52/81 [00:06<00:01, 16.92it/s]Downloaded 0.05 GB:  67%|██████▋   | 54/81 [00:06<00:01, 15.94it/s]Downloaded 0.05 GB:  67%|██████▋   | 54/81 [00:06<00:01, 15.94it/s]Downloaded 0.05 GB:  67%|██████▋   | 54/81 [00:06<00:01, 15.94it/s]Downloaded 0.06 GB:  67%|██████▋   | 54/81 [00:06<00:01, 15.94it/s]Downloaded 0.06 GB:  70%|███████   | 57/81 [00:06<00:01, 16.92it/s]Downloaded 0.06 GB:  70%|███████   | 57/81 [00:06<00:01, 16.92it/s]Downloaded 0.06 GB:  70%|███████   | 57/81 [00:06<00:01, 16.92it/s]Downloaded 0.06 GB:  70%|███████   | 57/81 [00:06<00:01, 16.92it/s]Downloaded 0.06 GB:  74%|███████▍  | 60/81 [00:06<00:01, 17.61it/s]Downloaded 0.06 GB:  74%|███████▍  | 60/81 [00:06<00:01, 17.61it/s]Downloaded 0.06 GB:  74%|███████▍  | 60/81 [00:06<00:01, 17.61it/s]Downloaded 0.06 GB:  77%|███████▋  | 62/81 [00:06<00:01, 16.42it/s]Downloaded 0.06 GB:  77%|███████▋  | 62/81 [00:06<00:01, 16.42it/s]Downloaded 0.06 GB:  77%|███████▋  | 62/81 [00:06<00:01, 16.42it/s]Downloaded 0.06 GB:  77%|███████▋  | 62/81 [00:06<00:01, 16.42it/s]Downloaded 0.06 GB:  80%|████████  | 65/81 [00:06<00:00, 17.27it/s]Downloaded 0.06 GB:  80%|████████  | 65/81 [00:06<00:00, 17.27it/s]Downloaded 0.07 GB:  80%|████████  | 65/81 [00:07<00:00, 17.27it/s]Downloaded 0.07 GB:  83%|████████▎ | 67/81 [00:07<00:00, 16.18it/s]Downloaded 0.07 GB:  83%|████████▎ | 67/81 [00:07<00:00, 16.18it/s]Downloaded 0.07 GB:  83%|████████▎ | 67/81 [00:07<00:00, 16.18it/s]Downloaded 0.07 GB:  83%|████████▎ | 67/81 [00:07<00:00, 16.18it/s]Downloaded 0.07 GB:  86%|████████▋ | 70/81 [00:07<00:00, 17.07it/s]Downloaded 0.07 GB:  86%|████████▋ | 70/81 [00:07<00:00, 17.07it/s]Downloaded 0.07 GB:  86%|████████▋ | 70/81 [00:07<00:00, 17.07it/s]Downloaded 0.07 GB:  86%|████████▋ | 70/81 [00:07<00:00, 17.07it/s]Downloaded 0.07 GB:  90%|█████████ | 73/81 [00:07<00:00, 17.72it/s]Downloaded 0.07 GB:  90%|█████████ | 73/81 [00:07<00:00, 17.72it/s]Downloaded 0.07 GB:  90%|█████████ | 73/81 [00:07<00:00, 17.72it/s]Downloaded 0.07 GB:  93%|█████████▎| 75/81 [00:07<00:00, 16.50it/s]Downloaded 0.07 GB:  93%|█████████▎| 75/81 [00:07<00:00, 16.50it/s]Downloaded 0.08 GB:  93%|█████████▎| 75/81 [00:07<00:00, 16.50it/s]Downloaded 0.08 GB:  93%|█████████▎| 75/81 [00:07<00:00, 16.50it/s]Downloaded 0.08 GB:  96%|█████████▋| 78/81 [00:07<00:00, 17.32it/s]Downloaded 0.08 GB:  96%|█████████▋| 78/81 [00:07<00:00, 17.32it/s]Downloaded 0.08 GB:  96%|█████████▋| 78/81 [00:07<00:00, 17.32it/s]Downloaded 0.08 GB:  96%|█████████▋| 78/81 [00:07<00:00, 17.32it/s]Downloaded 0.08 GB: 100%|██████████| 81/81 [00:07<00:00, 10.44it/s]
-Extracting /tmp/ogbn-arxiv/arxiv.zip
-Processing...
-Loading necessary files...
-This might take a while.
-Processing graphs...
-  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00, 21290.88it/s]
-Converting graphs into PyG objects...
-  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00, 3653.57it/s]
-Saving...
-Done!
-0.17869672695146918
-0.24640032620052837
-0.19629796379513928
-0.16253960703030096
-slurmstepd: error: *** JOB 22950006 ON uc2n517 CANCELLED AT 2023-12-18T19:46:00 DUE TO TIME LIMIT ***
-
-============================= JOB FEEDBACK =============================
-
-NodeName=uc2n517
-Job ID: 22950006
-Cluster: uc2
-User/Group: ul_rvl52/ul_student
-State: TIMEOUT (exit code 0)
-Nodes: 1
-Cores per node: 20
-CPU Utilized: 00:00:00
-CPU Efficiency: 0.00% of 5-00:04:00 core-walltime
-Job Wall-clock time: 06:00:12
-Memory Utilized: 67.20 GB
-Memory Efficiency: 73.20% of 91.80 GB
