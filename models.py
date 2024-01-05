@@ -144,17 +144,17 @@ class LP(torch_geometric.nn.models.LabelPropagation):
                  hidden_dim_size = 128, # unused
                  dropout = 0.5, # ununsed
                  distance_loss_weight = 1.0): # unused
-        super().__init__(num_layers=5, alpha=0.9)
+        super().__init__(num_layers=5, alpha=0.9) # hardcoded lp hyperparams
         # add fake tunable parameter
         self.fakeparam = torch.nn.Parameter(torch.tensor([0.], 
-                                                         requires_grad=True, dtype=torch.float64))
+                                                         requires_grad=True, dtype=torch.float32).to(device))
         
     def forward(self, x, edge_index, y, mask):
         return F.softmax(self.get_embeddings(x, edge_index, y, mask), dim=1)
     
     def get_embeddings(self, x, edge_index, y, mask):
         # embeddings get randomly initialized and overwritten by label propagation if nonzero
-        embeddings = F.softmax(torch.rand([len(y),len(y.unique())]),dim=1)
+        embeddings = F.softmax(torch.rand([len(y),len(y.unique())],device=device),dim=1)
         propagated_embeddings = super().forward(y, edge_index, mask)
         propagated_logits = propagated_embeddings.nonzero(as_tuple=True)[0]
         embeddings[propagated_logits] = propagated_embeddings[propagated_logits]
