@@ -16,6 +16,7 @@ array STDDEV[TOTAL_ROWS]
 array LEGEND[TOTAL_ROWS]
 i = 0
 do for [FILE in FILES]{
+    print FILE
     unset xrange # important for stats to work
     unset yrange
     load '< echo "\$DATA << EOD" & cat '.FILE
