@@ -18,6 +18,7 @@ import operator
 import yaml
 import numpy as np
 import math
+from datetime import datetime
 from functools import partial
 from itertools import takewhile
 from toolz.itertoolz import iterate, first, concat, cons
@@ -203,6 +204,7 @@ def run(model,
         :param learning_rate: Learning rate of the optimizer
         :returns: single run statistics
         """
+        start_time = datetime.now()
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=5e-4)
         classifier = None
         sampler_fun = sampling.sampler[sampler]
@@ -232,7 +234,8 @@ def run(model,
                 merge(few_shot_training(optimizer, model, dataset),
                       {"Budget used": int(dataset.train_mask.sum()),
                        "Class distrubution": torch.bincount(dataset.ground_truth[dataset.train_mask]).cpu().numpy()}))
-        print(run_stats[-1]['Unlabeled accuracy'])
+        stop_time = datetime.now()
+        print(stop_time - start_time, run_stats[-1]['Unlabeled accuracy'])
         return run_stats
     # perform experiments
     results = []
