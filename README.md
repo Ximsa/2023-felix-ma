@@ -1,12 +1,52 @@
 # 2023-Felix-MA
 
+## Requirements
 
+Python requirements are listed in [requirements.txt](https://gitlab.informatik.uni-ulm.de/dbis/data-science-and-big-data-analytics/teaching/2023-felix-ma/-/blob/main/requirements.txt?ref_type=heads)
 
+To perform plotting and evaluation of the results, gnuplot has to be installed.
+
+## Project structure
+
+| File     | Description |
+| -------- | ------- |
+| datasets.py  | Loads and processed datasets |
+| job_omp.sh | Used for slurm job submission |
+| models.py | Contains model definitions |
+| plot_averages.gnuplot | Plots the results of the current directory and calculates means and standard deviations |
+| plot_single.gnuplot | Plots individual results of a run |
+| requirements.txt | Python requirements |
+| run_config.py | Main python file, loads and runs given config file|
+| sampling.py | Contains sampling strategies for the active learner |
+| submit.sh | (slurm) Submits every config from config/ with settings from job_omp-sh |
+| train.py | Contains training and evaluation functions |
+| util.py | Miscellaneous utility functions |
 ## Getting started
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+To run experiments you have to define run configurations as seen in config/.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Run configurations use the [edn](https://github.com/edn-format/edn) file format.
+
+| Field     | Description |
+| -------- | ------- |
+| model_names | Model names as defined in models.py |
+| samplers | Samplers as defined by sampling.py |
+| num_steps | How often to sample |
+| sampler_per_step | how many sampler to draw in multiples of amount of classes |
+| seed | seed that generates seeds for each repeat |
+| repeats | how often to repeat the experiments |
+| subsampler | subsamplers from sampling.py to try |
+| label_propagation_uncertainty_treshold | label prpagation: 0 disables label propagation, non-zero filters "uncertain" labels |
+|hidden_dim_size| hidden dim sizes of used models |
+| dropout | dropout used in models |
+| distance_loss_weight | (GPN only) weighing of the loss and regularisation terms |
+|learning_rate| learning rates used |
+```
+cd existing_repo
+git remote add origin https://gitlab.informatik.uni-ulm.de/dbis/data-science-and-big-data-analytics/teaching/2023-felix-ma.git
+git branch -M main
+git push -uf origin main
+```
 
 ## Add your files
 
