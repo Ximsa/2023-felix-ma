@@ -3,7 +3,8 @@
 #SBATCH --mail-user=felix.burr@uni-ulm.de
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=20
-#SBATCH --time=06:00:00
+#SBATCH --mem=188000mb
+#SBATCH --time=12:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --export=CONFIG,ALL,EXECUTABLE="time python3.9 -u run_config.py"
 #SBATCH -J OpenMP_Test

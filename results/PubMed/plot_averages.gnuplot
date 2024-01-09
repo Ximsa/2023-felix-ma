@@ -32,7 +32,7 @@ do for [FILE in FILES]{
 	STDDEV[i+j] = STATS_stddev_y
 	LOC_STDDEV[j] = STATS_stddev_y}
     i = i + ROWCOUNT
-    print sprintf("%s\tMean(after 5|C|): %.4f(%.4f)\tStd(after 5|C|): %.4f(%.4f)\t ", FILE, LOC_MEAN[ROWCOUNT], LOC_MEAN[6], LOC_STDDEV[ROWCOUNT], LOC_STDDEV[6])}
+    print sprintf("%s\tMean_Std(after 5|C|): $%.1f_{%.1f}$\t$%.1f_{%.1f}$", FILE, LOC_MEAN[ROWCOUNT]*100, LOC_STDDEV[ROWCOUNT]*100, LOC_MEAN[6]*100, LOC_STDDEV[6]*100)}
 set grid
 set yrange [0:1]
 set xtics BUDGET[3] # every second datapoint
