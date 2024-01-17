@@ -64,10 +64,10 @@ def sub_sampler(num_samples, indices, embeddings, ranks, subsampler):
             weights = (normalized_pageranks * (1-entropy_pagerank_weighting)
                        + normalized_entropies * entropy_pagerank_weighting)
     
-        normalized_weights = normalize(weights, dim=0, p=1).numpy()
+        normalized_weights = normalize(weights, dim=0, p=1).numpy().astype('float64')
         selected_indices = np.random.choice(indices,
                                             size=num_samples,
-                                            p=normalized_weights,
+                                            p=(normalized_weights / normalized_weights.sum()), # normalize twice
                                             replace=False)
         return selected_indices
     else:
