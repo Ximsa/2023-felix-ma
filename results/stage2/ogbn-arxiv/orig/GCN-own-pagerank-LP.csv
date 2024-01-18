@@ -1,0 +1,68 @@
+dataset_name;sampler_name;subsampler;label_propagation_uncertainty_treshold;hidden_dim_size;dropout;distance_loss_weight;learning_rate;seed;Labeled accuracy;Labeled macro-f1;Labeled confusion;Unlabeled accuracy;Unlabeled macro-f1;Unlabeled confusion;Test accuracy;Test macro-f1;Test confusion;Budget used;Class distrubution
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;20795212.0;0.0;0.0;[[]];0.00463216868181473;0.0015290347413773743;ommited for csv readability;0.004899260192035259;0.002018422430529721;ommited for csv readability;0.0;[]
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;20795212.0;0.18112244897959184;0.009293801950389423;ommited for csv readability;0.13036816307872037;0.005766623978670981;ommited for csv readability;0.12635762631827482;0.0056091255284211996;ommited for csv readability;392.0;"[ 0  1 13  4 18 14  3  1 18 13 10  1  0  2  0  0 53  0  1  7  1  1  4  6
+ 45  3 16 11 71  1 18  5  0  5 19  0 12  8  2  5]"
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;20795212.0;0.16287878787878787;0.0077813970322113644;ommited for csv readability;0.13375011679563736;0.005898571246619166;ommited for csv readability;0.12635762631827482;0.0056091255284211996;ommited for csv readability;792.0;"[  2   2  21   7  36  28   4   1  45  18  24   3   0  10   0   1 117   3
+   3  15   6   1   9   9  87   3  29  16 129   3  61   9   0   6  31   0
+  24  14   5  10]"
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;20795212.0;0.16275167785234898;0.007637389142454267;ommited for csv readability;0.2041303365806677;0.009010880612705548;ommited for csv readability;0.16287580670549348;0.0075768991948694285;ommited for csv readability;1192.0;"[  2   2  30  11  50  42   5   3  62  24  42   4   0  18   1   2 192   4
+   4  22   7   1   9  13 150   5  40  22 198   4  80  13   2   9  45   1
+  35  18   6  14]"
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;20795212.0;0.3046482412060301;0.026382635379075633;ommited for csv readability;0.3158894010793059;0.02675693958327195;ommited for csv readability;0.2718597512985991;0.02471359519051421;ommited for csv readability;1592.0;"[  3   5  41  14  62  53   8   4  74  39  60   4   0  23   3   2 256   4
+   5  31  11   2  11  17 203  11  52  37 258   4 109  18   2   9  69   1
+  40  22   9  16]"
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;20795212.0;0.31877510040160645;0.025498781265371927;ommited for csv readability;0.31986578217923745;0.024813562168150616;ommited for csv readability;0.2802809696206517;0.022819192834721565;ommited for csv readability;1992.0;"[  5   6  50  20  76  57   9   5  88  46  86   5   0  27   3   3 330   4
+   6  38  17   3  13  22 261  13  59  47 321   4 132  23   5  11  87   2
+  48  31  11  18]"
+
+
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;649695571.0;0.0;0.0;[[]];0.03251799289565386;0.0036065568673523144;ommited for csv readability;0.0328191405635133;0.0036260009224641414;ommited for csv readability;0.0;[]
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;649695571.0;0.15521628498727735;0.007677784770295783;ommited for csv readability;0.22994091055313817;0.00934764054842795;ommited for csv readability;0.16128207146230128;0.0069441385269649785;ommited for csv readability;393.0;"[ 1  1 15  9 21 13  1  1 13  4 22  0  0  7  3  1 61  0  1  3  4  1  3 11
+ 41  0  4 13 51  1 32  9  2  2 19  0  9  4  3  7]"
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;649695571.0;0.1878238341968912;0.008547260455657402;ommited for csv readability;0.22305451518934666;0.009118747873426336;ommited for csv readability;0.16128207146230128;0.0069441385269649785;ommited for csv readability;772.0;"[  2   2  26  17  29  22   3   4  27   9  39   0   0  13   6   2 145   3
+   3  10  12   1   6  20  86   3  12  20  95   3  59  11   2   4  36   0
+  12  14   5   9]"
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;649695571.0;0.1885665529010239;0.008575697017908075;ommited for csv readability;0.2161623220022668;0.00888706705065411;ommited for csv readability;0.16128207146230128;0.0069441385269649785;ommited for csv readability;1172.0;"[  3   2  40  21  43  29   5   5  37  15  54   0   0  20   7   2 221   3
+   3  16  18   2  10  24 146   6  26  29 150   4  90  17   3   7  60   0
+  16  18   7  13]"
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;649695571.0;0.1921119592875318;0.008710952147451614;ommited for csv readability;0.20796600169307464;0.008608106577568875;ommited for csv readability;0.16128207146230128;0.0069441385269649785;ommited for csv readability;1572.0;"[  4   2  50  22  59  40   6   6  47  21  70   0   0  22   9   2 302   5
+   4  21  22   2  14  33 215   7  35  36 195   6 128  22   4   8  81   0
+  22  23   9  18]"
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;649695571.0;0.19127346524606798;0.00845064108311665;ommited for csv readability;0.2072622438823489;0.008583977712076417;ommited for csv readability;0.16128207146230128;0.0069441385269649785;ommited for csv readability;1971.0;"[  5   3  61  29  67  49   8   8  62  27  84   1   0  27  10   2 377   5
+   4  31  26   2  18  37 271  10  46  51 248   6 159  28   4   8 101   0
+  31  31  12  22]"
+
+
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;831763849.0;0.0;0.0;[[]];0.009686210649769236;0.001984299153648161;ommited for csv readability;0.009837871871556745;0.001997152036876092;ommited for csv readability;0.0;[]
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;831763849.0;0.17346938775510204;0.008695652173913042;ommited for csv readability;0.19413004647540358;0.00815970389980393;ommited for csv readability;0.16151818038721863;0.0070390116991418256;ommited for csv readability;392.0;"[ 1  0 14  4 13  9  2  1 17  7 14  1  0  7  1  1 68  1  1  5  5  0  7  2
+ 42  0 11 11 56  4 30  6  0  1 28  0 10  2  5  5]"
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;831763849.0;0.30303030303030304;0.030642774024774264;ommited for csv readability;0.2994385315178336;0.026969705813534695;ommited for csv readability;0.25621753502282385;0.025753722884160068;ommited for csv readability;792.0;"[  3   0  24   8  21  21   3   1  37  15  32   2   0  12   3   3 149   2
+   3   6   7   0  11   5  98   2  22  23 114   4  51  13   1   1  47   0
+  23   8   8   9]"
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;831763849.0;0.3238255033557047;0.026333313667825424;ommited for csv readability;0.3247163909415565;0.025477076333486844;ommited for csv readability;0.27732960805918466;0.023445421722434252;ommited for csv readability;1192.0;"[  7   2  31  16  35  29   4   5  50  21  55   2   0  18   3   6 216   2
+   3  14   8   1  16   7 151   5  36  31 186   7  77  17   2   1  64   1
+  29  11  10  13]"
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;831763849.0;0.3435929648241206;0.026565610166896337;ommited for csv readability;0.3392030925278165;0.02526641715240525;ommited for csv readability;0.2819337320950732;0.022439130011378195;ommited for csv readability;1592.0;"[  7   2  36  18  45  37   5   7  67  28  67   3   0  25   4   6 291   3
+   6  19  10   2  21  13 210   6  45  38 264   8 102  20   3   6  83   1
+  40  14  14  16]"
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;831763849.0;0.34387550200803213;0.02629530913173137;ommited for csv readability;0.34025590635646674;0.025065468299459444;ommited for csv readability;0.2824059499449079;0.022048870385383976;ommited for csv readability;1992.0;"[  8   2  44  26  57  46   7   9  84  38  80   4   0  33   5   8 358   5
+   7  25  13   3  25  16 261   8  56  47 334   8 120  27   5   6 106   1
+  49  21  18  22]"
+
+
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;615395017.0;0.0;0.0;[[]];0.005779664020114918;0.0013929176048779256;ommited for csv readability;0.005942074610420274;0.0014945825485553315;ommited for csv readability;0.0;[]
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;615395017.0;0.058673469387755105;0.003358890105878058;ommited for csv readability;0.09525341369881568;0.0043484645885344606;ommited for csv readability;0.06975051156933731;0.0032601298534091112;ommited for csv readability;392.0;"[ 0  0  8  3 13 15  3  1 20  9 20  0  1  6  2  1 56  0  3  9  6  2  4  7
+ 56  3 12  9 55  0 23  4  0  1 21  0  6  5  5  3]"
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;615395017.0;0.16540404040404041;0.007671810488711898;ommited for csv readability;0.19705759936123404;0.008230915515944539;ommited for csv readability;0.1613017472060444;0.006952040708709852;ommited for csv readability;792.0;"[  1   1  16   7  23  28   5   2  42  20  34   0   1  12   5   5 131   0
+   5  15   7   2   8  10 111   3  19  22 130   1  43   8   0   3  40   1
+  11   7   7   6]"
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;615395017.0;0.32016806722689073;0.02989292552708634;ommited for csv readability;0.3135882859310145;0.02720413150359837;ommited for csv readability;0.264560050369904;0.025141398241493983;ommited for csv readability;1190.0;"[  2   1  22  14  35  38   5   3  53  31  48   1   1  20   6   6 218   0
+   6  20  11   2  11  16 171   8  28  29 185   1  76  10   0   3  60   1
+  13  13  11  11]"
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;615395017.0;0.33584905660377357;0.02646943038870503;ommited for csv readability;0.3300549906353428;0.025211143146793825;ommited for csv readability;0.28022194238942233;0.022687604164458648;ommited for csv readability;1590.0;"[  2   2  30  20  42  50   7   3  69  39  70   3   1  27   6   6 296   0
+   7  26  17   3  14  19 221  10  43  41 248   1  97  13   3   8  81   1
+  20  15  13  16]"
+ogbn-arxiv;own;pagerank;0.2;64;0.5;1;0.005;615395017.0;0.33668341708542715;0.02541123518635009;ommited for csv readability;0.3297891511984141;0.0247348127840838;ommited for csv readability;0.28232724696993544;0.022253796079676043;ommited for csv readability;1990.0;"[  5   2  41  24  58  57   8   4  85  45  84   8   1  33   6   7 357   1
+  10  29  26   5  16  21 268  12  52  50 320   1 127  17   4  11 108   2
+  30  18  15  22]"
+
