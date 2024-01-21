@@ -1,0 +1,80 @@
+dataset_name;sampler_name;subsampler;label_propagation_uncertainty_treshold;hidden_dim_size;dropout;distance_loss_weight;learning_rate;seed;Labeled accuracy;Labeled macro-f1;Labeled confusion;Unlabeled accuracy;Unlabeled macro-f1;Unlabeled confusion;Test accuracy;Test macro-f1;Test confusion;Budget used;Class distrubution
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;20795212.0;0.0;0.0;[[]];0.1706792777300086;0.16691061421077544;ommited for csv readability;0.1798201798201798;0.17450709055476454;ommited for csv readability;0.0;[]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;20795212.0;1.0;1.0;ommited for csv readability;0.32370689655172413;0.27665999015372894;ommited for csv readability;0.34765234765234765;0.3094845059648547;ommited for csv readability;6.0;[0 3 1 1 1]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;20795212.0;1.0;1.0;ommited for csv readability;0.32757130509939497;0.2887883224755269;ommited for csv readability;0.3206793206793207;0.28382700551570345;ommited for csv readability;12.0;[0 5 3 2 2]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;20795212.0;1.0;1.0;ommited for csv readability;0.395580589254766;0.36577227727655054;ommited for csv readability;0.36663336663336665;0.33433488480239215;ommited for csv readability;18.0;[1 7 4 3 2 1]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;20795212.0;1.0;1.0;ommited for csv readability;0.40877497827975673;0.36447218850602137;ommited for csv readability;0.3946053946053946;0.3573922415907866;ommited for csv readability;24.0;[1 7 4 6 5 1]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;20795212.0;0.9333333333333333;0.951388888888889;ommited for csv readability;0.42813588850174217;0.3862046012004974;ommited for csv readability;0.40559440559440557;0.3665288800705467;ommited for csv readability;30.0;[1 8 6 8 6 1]
+
+
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;649695571.0;0.0;0.0;[[]];0.17540842648323302;0.1729111869396661;ommited for csv readability;0.18181818181818182;0.17678930280255659;ommited for csv readability;0.0;[]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;649695571.0;1.0;1.0;ommited for csv readability;0.2814655172413793;0.24971132732331647;ommited for csv readability;0.25774225774225773;0.22747058674389095;ommited for csv readability;6.0;[1 2 0 2 1]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;649695571.0;1.0;1.0;ommited for csv readability;0.3055315471045808;0.27690068175155613;ommited for csv readability;0.2957042957042957;0.26650480679456345;ommited for csv readability;12.0;[1 3 2 5 1]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;649695571.0;1.0;1.0;ommited for csv readability;0.34358752166377815;0.3095852976592897;ommited for csv readability;0.33166833166833165;0.3017682129864454;ommited for csv readability;18.0;[1 5 3 6 2 1]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;649695571.0;1.0;1.0;ommited for csv readability;0.3722849695916594;0.3424291114719922;ommited for csv readability;0.36363636363636365;0.33471666191586613;ommited for csv readability;24.0;[1 8 3 6 3 3]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;649695571.0;1.0;1.0;ommited for csv readability;0.43597560975609756;0.38668303687181;ommited for csv readability;0.4195804195804196;0.37026161554516906;ommited for csv readability;30.0;[ 1 11  4  7  4  3]
+
+
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;831763849.0;0.0;0.0;[[]];0.16638005159071367;0.1622783379117055;ommited for csv readability;0.15684315684315683;0.15309886901996603;ommited for csv readability;0.0;[]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;831763849.0;1.0;1.0;ommited for csv readability;0.1857758620689655;0.1799095692791021;ommited for csv readability;0.1798201798201798;0.17107424990386919;ommited for csv readability;6.0;[0 0 0 0 1 5]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;831763849.0;1.0;1.0;ommited for csv readability;0.30423509075194466;0.26494588100676525;ommited for csv readability;0.26073926073926074;0.22913265318183051;ommited for csv readability;12.0;[1 1 2 1 1 6]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;831763849.0;1.0;1.0;ommited for csv readability;0.360051993067591;0.3218529578136906;ommited for csv readability;0.32867132867132864;0.2923477666097611;ommited for csv readability;18.0;[1 3 2 3 2 7]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;831763849.0;1.0;1.0;ommited for csv readability;0.3549087749782798;0.32103657396578705;ommited for csv readability;0.33266733266733267;0.30742558566716977;ommited for csv readability;24.0;[2 4 2 5 4 7]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;831763849.0;1.0;1.0;ommited for csv readability;0.3519163763066202;0.317859940569138;ommited for csv readability;0.3306693306693307;0.30655318182841235;ommited for csv readability;30.0;[4 5 3 6 5 7]
+
+
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;615395017.0;0.0;0.0;[[]];0.16809974204643163;0.1653396607537726;ommited for csv readability;0.18681318681318682;0.18407239630532046;ommited for csv readability;0.0;[]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;615395017.0;1.0;1.0;ommited for csv readability;0.24439655172413793;0.23047046563853393;ommited for csv readability;0.2517482517482518;0.24016111369295487;ommited for csv readability;6.0;[0 2 0 3 1]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;615395017.0;1.0;1.0;ommited for csv readability;0.40190146931719967;0.3467672855111794;ommited for csv readability;0.3956043956043956;0.34228929257327545;ommited for csv readability;12.0;[0 3 1 4 3 1]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;615395017.0;1.0;1.0;ommited for csv readability;0.41767764298093585;0.3572417639412168;ommited for csv readability;0.4125874125874126;0.35847904043049866;ommited for csv readability;18.0;[0 5 1 5 4 3]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;615395017.0;1.0;1.0;ommited for csv readability;0.4157254561251086;0.35995944757142073;ommited for csv readability;0.42857142857142855;0.3779374403618612;ommited for csv readability;24.0;[0 7 2 7 4 4]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;615395017.0;1.0;1.0;ommited for csv readability;0.44686411149825783;0.3907106498713506;ommited for csv readability;0.4385614385614386;0.39211912540949173;ommited for csv readability;30.0;[0 8 3 7 5 7]
+
+
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;2140929057.0;0.0;0.0;[[]];0.16595012897678418;0.1626024483399967;ommited for csv readability;0.16183816183816183;0.15855491528287008;ommited for csv readability;0.0;[]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;2140929057.0;1.0;1.0;ommited for csv readability;0.18491379310344827;0.18092126673640888;ommited for csv readability;0.18081918081918083;0.1760134007012462;ommited for csv readability;6.0;[2 0 3 1]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;2140929057.0;1.0;1.0;ommited for csv readability;0.18409680207433016;0.1745714646994414;ommited for csv readability;0.17882117882117882;0.1695294738917462;ommited for csv readability;12.0;[3 2 4 2 1]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;2140929057.0;1.0;1.0;ommited for csv readability;0.2820623916811092;0.26563063403895804;ommited for csv readability;0.2787212787212787;0.26288420089516257;ommited for csv readability;18.0;[3 2 6 2 2 3]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;2140929057.0;0.9166666666666666;0.9305555555555557;ommited for csv readability;0.31190269331016507;0.27976321912494534;ommited for csv readability;0.3016983016983017;0.2757991956344506;ommited for csv readability;24.0;[4 4 6 3 4 3]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;2140929057.0;0.8666666666666667;0.8773809523809524;ommited for csv readability;0.34146341463414637;0.3045112731544027;ommited for csv readability;0.3356643356643357;0.3045131232499161;ommited for csv readability;30.0;[5 5 7 4 5 4]
+
+
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1240197975.0;0.0;0.0;[[]];0.1642304385210662;0.1608240889263142;ommited for csv readability;0.17482517482517482;0.17193898454617051;ommited for csv readability;0.0;[]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1240197975.0;1.0;1.0;ommited for csv readability;0.24913793103448276;0.22807153226669272;ommited for csv readability;0.22577422577422576;0.20264334278114693;ommited for csv readability;6.0;[0 2 0 2 2]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1240197975.0;1.0;1.0;ommited for csv readability;0.36949006050129646;0.32327322444960926;ommited for csv readability;0.34765234765234765;0.305199019520466;ommited for csv readability;12.0;[2 3 1 3 3]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1240197975.0;1.0;1.0;ommited for csv readability;0.36915077989601386;0.3178726370657296;ommited for csv readability;0.36063936063936064;0.3079622744659108;ommited for csv readability;18.0;[2 4 2 6 3 1]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1240197975.0;1.0;1.0;ommited for csv readability;0.3475238922675934;0.2973385583031238;ommited for csv readability;0.3546453546453546;0.30935780579226885;ommited for csv readability;24.0;[2 6 4 7 3 2]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1240197975.0;1.0;1.0;ommited for csv readability;0.33013937282229966;0.2885643184087268;ommited for csv readability;0.33266733266733267;0.2904572020884973;ommited for csv readability;30.0;[2 6 5 9 4 4]
+
+
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;784866329.0;0.0;0.0;[[]];0.16294067067927773;0.16012375951346258;ommited for csv readability;0.15184815184815184;0.1466137748418402;ommited for csv readability;0.0;[]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;784866329.0;1.0;1.0;ommited for csv readability;0.20344827586206896;0.17941074906472695;ommited for csv readability;0.1938061938061938;0.1652938903691136;ommited for csv readability;6.0;[0 3 0 1 2]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;784866329.0;1.0;1.0;ommited for csv readability;0.26231633535004323;0.23418461167292795;ommited for csv readability;0.26073926073926074;0.237922680558137;ommited for csv readability;12.0;[0 3 3 2 3 1]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;784866329.0;1.0;1.0;ommited for csv readability;0.29766031195840553;0.2642714912004054;ommited for csv readability;0.27372627372627373;0.23741819617346807;ommited for csv readability;18.0;[0 4 5 3 4 2]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;784866329.0;1.0;1.0;ommited for csv readability;0.31016507384882713;0.2792400266940229;ommited for csv readability;0.3006993006993007;0.27490119863225876;ommited for csv readability;24.0;[1 5 7 5 4 2]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;784866329.0;1.0;1.0;ommited for csv readability;0.3318815331010453;0.3120562258869067;ommited for csv readability;0.33166833166833165;0.31100021849327936;ommited for csv readability;30.0;[1 5 8 7 4 5]
+
+
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1866817562.0;0.0;0.0;[[]];0.16938950988822013;0.1661224481635285;ommited for csv readability;0.16483516483516483;0.16121651559767355;ommited for csv readability;0.0;[]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1866817562.0;1.0;1.0;ommited for csv readability;0.22413793103448276;0.21034295822589677;ommited for csv readability;0.24375624375624375;0.2334336574085403;ommited for csv readability;6.0;[2 1 1 1 0 1]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1866817562.0;1.0;1.0;ommited for csv readability;0.34831460674157305;0.29387644115078776;ommited for csv readability;0.35764235764235763;0.31249508370914614;ommited for csv readability;12.0;[2 2 2 2 3 1]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1866817562.0;1.0;1.0;ommited for csv readability;0.3856152512998267;0.3372277485466781;ommited for csv readability;0.3856143856143856;0.34419767607095775;ommited for csv readability;18.0;[2 3 3 4 3 3]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1866817562.0;1.0;1.0;ommited for csv readability;0.40834057341442226;0.3695499978683328;ommited for csv readability;0.4015984015984016;0.3749686104554968;ommited for csv readability;24.0;[3 4 3 6 3 5]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1866817562.0;1.0;1.0;ommited for csv readability;0.4250871080139373;0.3973147869552533;ommited for csv readability;0.4035964035964036;0.37914813417153076;ommited for csv readability;30.0;[3 6 3 8 3 7]
+
+
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;503786444.0;0.0;0.0;[[]];0.1638005159071367;0.16150608972725974;ommited for csv readability;0.16283716283716285;0.15882106326352893;ommited for csv readability;0.0;[]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;503786444.0;1.0;1.0;ommited for csv readability;0.2620689655172414;0.21446156309480968;ommited for csv readability;0.2937062937062937;0.24935857144266335;ommited for csv readability;6.0;[0 0 2 4]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;503786444.0;1.0;1.0;ommited for csv readability;0.287381158167675;0.2378518514396691;ommited for csv readability;0.2947052947052947;0.2435829612469431;ommited for csv readability;12.0;[0 0 4 6 0 2]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;503786444.0;1.0;1.0;ommited for csv readability;0.37261698440207974;0.32058434674034836;ommited for csv readability;0.37662337662337664;0.32285337826862237;ommited for csv readability;18.0;[0 3 4 7 2 2]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;503786444.0;1.0;1.0;ommited for csv readability;0.37576020851433534;0.3272746158172129;ommited for csv readability;0.4005994005994006;0.35534531864994734;ommited for csv readability;24.0;[1 3 7 8 2 3]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;503786444.0;1.0;1.0;ommited for csv readability;0.4024390243902439;0.35525211136893886;ommited for csv readability;0.40559440559440557;0.36281763519142857;ommited for csv readability;30.0;[ 1  5  7 11  2  4]
+
+
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1256718679.0;0.0;0.0;[[]];0.16294067067927773;0.15999070237515567;ommited for csv readability;0.16983016983016982;0.16910758722626898;ommited for csv readability;0.0;[]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1256718679.0;1.0;1.0;ommited for csv readability;0.3448275862068966;0.29600312653503574;ommited for csv readability;0.34265734265734266;0.2961131307075298;ommited for csv readability;6.0;[0 0 1 0 4 1]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1256718679.0;1.0;1.0;ommited for csv readability;0.37899740708729474;0.33276912019560095;ommited for csv readability;0.36363636363636365;0.3193702178863099;ommited for csv readability;12.0;[0 1 3 1 5 2]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1256718679.0;1.0;1.0;ommited for csv readability;0.37261698440207974;0.3233859135984883;ommited for csv readability;0.37662337662337664;0.33578459433037633;ommited for csv readability;18.0;[1 2 4 1 7 3]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1256718679.0;1.0;1.0;ommited for csv readability;0.38922675933970463;0.33834554826098096;ommited for csv readability;0.3696303696303696;0.323261400280882;ommited for csv readability;24.0;[ 1  4  5  1 10  3]
+CiteSeer;own;pagerank;0;64;0.5;1;0.005;1256718679.0;1.0;1.0;ommited for csv readability;0.3885017421602787;0.338544421555443;ommited for csv readability;0.3886113886113886;0.3501217930029427;ommited for csv readability;30.0;[ 2  4  6  3 11  4]
+
