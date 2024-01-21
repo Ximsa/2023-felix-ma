@@ -1,0 +1,80 @@
+dataset_name;sampler_name;subsampler;label_propagation_uncertainty_treshold;hidden_dim_size;dropout;distance_loss_weight;learning_rate;seed;Labeled accuracy;Labeled macro-f1;Labeled confusion;Unlabeled accuracy;Unlabeled macro-f1;Unlabeled confusion;Test accuracy;Test macro-f1;Test confusion;Budget used;Class distrubution
+Cora;own;medoids;0.2;64;0.5;1;0.005;20795212.0;0.0;0.0;[[]];0.13749338974087785;0.1255938931472691;ommited for csv readability;0.1456548347613219;0.1392095304479121;ommited for csv readability;0.0;[]
+Cora;own;medoids;0.2;64;0.5;1;0.005;20795212.0;1.0;1.0;ommited for csv readability;0.3826963906581741;0.31298729683515225;ommited for csv readability;0.3880048959608323;0.308605659029159;ommited for csv readability;7.0;[1 0 1 2 2 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;20795212.0;1.0;1.0;ommited for csv readability;0.49440596696856687;0.39576990123294226;ommited for csv readability;0.48225214198286415;0.4029000537501003;ommited for csv readability;14.0;[4 0 1 4 3 1 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;20795212.0;1.0;1.0;ommited for csv readability;0.5363636363636364;0.448408380910979;ommited for csv readability;0.5373317013463892;0.4538508620167027;ommited for csv readability;21.0;[4 0 2 6 5 1 3]
+Cora;own;medoids;0.2;64;0.5;1;0.005;20795212.0;1.0;1.0;ommited for csv readability;0.5764895330112721;0.5005655976273953;ommited for csv readability;0.576499388004896;0.49937319151893833;ommited for csv readability;28.0;[4 0 2 9 5 3 5]
+Cora;own;medoids;0.2;64;0.5;1;0.005;20795212.0;1.0;1.0;ommited for csv readability;0.6066810344827587;0.5724670664651201;ommited for csv readability;0.6046511627906976;0.5670152202879506;ommited for csv readability;35.0;[ 4  1  2 11  5  5  7]
+
+
+Cora;own;medoids;0.2;64;0.5;1;0.005;649695571.0;0.0;0.0;[[]];0.12903225806451613;0.12054821777511784;ommited for csv readability;0.15055079559363524;0.1472635442755649;ommited for csv readability;0.0;[]
+Cora;own;medoids;0.2;64;0.5;1;0.005;649695571.0;1.0;1.0;ommited for csv readability;0.45010615711252655;0.3667771863841117;ommited for csv readability;0.45777233782129745;0.3797968461946839;ommited for csv readability;7.0;[1 1 2 1 1 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;649695571.0;1.0;1.0;ommited for csv readability;0.4821523708044752;0.4364463671630176;ommited for csv readability;0.4565483476132191;0.3860280875234446;ommited for csv readability;14.0;[1 1 2 5 2 2 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;649695571.0;1.0;1.0;ommited for csv readability;0.5235294117647059;0.47947980955933656;ommited for csv readability;0.5079559363525091;0.4473170664857487;ommited for csv readability;21.0;[2 1 2 6 7 2 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;649695571.0;1.0;1.0;ommited for csv readability;0.5577026301663983;0.4979342273624127;ommited for csv readability;0.5385556915544676;0.4634207883417287;ommited for csv readability;28.0;[ 2  1  2 10  9  3  1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;649695571.0;1.0;1.0;ommited for csv readability;0.5797413793103449;0.5272122368148465;ommited for csv readability;0.5716034271725826;0.5191178746400372;ommited for csv readability;35.0;[ 2  1  3 13 11  3  2]
+
+
+Cora;own;medoids;0.2;64;0.5;1;0.005;831763849.0;0.0;0.0;[[]];0.1406663141195135;0.1346671509339846;ommited for csv readability;0.1346389228886169;0.1306379276547543;ommited for csv readability;0.0;[]
+Cora;own;medoids;0.2;64;0.5;1;0.005;831763849.0;1.0;1.0;ommited for csv readability;0.22983014861995754;0.20487054262365959;ommited for csv readability;0.21052631578947367;0.19352578382972188;ommited for csv readability;7.0;[1 1 0 2 2 0 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;831763849.0;1.0;1.0;ommited for csv readability;0.41662226957911563;0.3377483152975148;ommited for csv readability;0.3818849449204406;0.3025679696417168;ommited for csv readability;14.0;[2 1 1 5 4 0 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;831763849.0;1.0;1.0;ommited for csv readability;0.5005347593582887;0.3970101910507366;ommited for csv readability;0.4675642594859241;0.36072946326358807;ommited for csv readability;21.0;[3 1 1 8 7 0 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;831763849.0;1.0;1.0;ommited for csv readability;0.5335480407944176;0.4510869520854233;ommited for csv readability;0.4883720930232558;0.3959857367376273;ommited for csv readability;28.0;[ 3  2  2 11  7  0  3]
+Cora;own;medoids;0.2;64;0.5;1;0.005;831763849.0;1.0;1.0;ommited for csv readability;0.5657327586206896;0.48049403093107784;ommited for csv readability;0.5055079559363526;0.41470551462505184;ommited for csv readability;35.0;[ 3  2  3 14  8  0  5]
+
+
+Cora;own;medoids;0.2;64;0.5;1;0.005;615395017.0;0.0;0.0;[[]];0.13220518244315177;0.12718000405881072;ommited for csv readability;0.1419828641370869;0.13347109200209165;ommited for csv readability;0.0;[]
+Cora;own;medoids;0.2;64;0.5;1;0.005;615395017.0;1.0;1.0;ommited for csv readability;0.3062632696390658;0.24689665186366924;ommited for csv readability;0.2594859241126071;0.2123168744066173;ommited for csv readability;7.0;[2 1 1 1 2]
+Cora;own;medoids;0.2;64;0.5;1;0.005;615395017.0;1.0;1.0;ommited for csv readability;0.4224826851358551;0.34090747173125174;ommited for csv readability;0.3659730722154223;0.3007658968904177;ommited for csv readability;14.0;[4 2 2 3 3]
+Cora;own;medoids;0.2;64;0.5;1;0.005;615395017.0;1.0;1.0;ommited for csv readability;0.48128342245989303;0.43146098171545505;ommited for csv readability;0.41615667074663404;0.3786254488779643;ommited for csv readability;21.0;[5 3 2 3 5 2 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;615395017.0;1.0;1.0;ommited for csv readability;0.46806226516371446;0.4197402042981884;ommited for csv readability;0.40269277845777235;0.36752865830394466;ommited for csv readability;28.0;[6 3 2 6 6 4 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;615395017.0;1.0;1.0;ommited for csv readability;0.48114224137931033;0.4371712135433494;ommited for csv readability;0.4149326805385557;0.3781117156941334;ommited for csv readability;35.0;[8 3 2 8 8 5 1]
+
+
+Cora;own;medoids;0.2;64;0.5;1;0.005;2140929057.0;0.0;0.0;[[]];0.14542570068746694;0.13596184577187354;ommited for csv readability;0.1689106487148103;0.1617206200092165;ommited for csv readability;0.0;[]
+Cora;own;medoids;0.2;64;0.5;1;0.005;2140929057.0;1.0;1.0;ommited for csv readability;0.4145435244161359;0.2783481208257156;ommited for csv readability;0.40269277845777235;0.2522543422079379;ommited for csv readability;7.0;[0 1 2 3 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;2140929057.0;1.0;1.0;ommited for csv readability;0.44539158231220033;0.30217513370246124;ommited for csv readability;0.4369645042839657;0.2838927354822246;ommited for csv readability;14.0;[0 1 3 6 4]
+Cora;own;medoids;0.2;64;0.5;1;0.005;2140929057.0;1.0;1.0;ommited for csv readability;0.509090909090909;0.42030250571470373;ommited for csv readability;0.5030599755201959;0.4174149833149191;ommited for csv readability;21.0;[2 1 4 6 6 0 2]
+Cora;own;medoids;0.2;64;0.5;1;0.005;2140929057.0;1.0;1.0;ommited for csv readability;0.5437466451959205;0.45994048558068595;ommited for csv readability;0.5214198286413708;0.4403097075457324;ommited for csv readability;28.0;[ 3  1  4 10  8  0  2]
+Cora;own;medoids;0.2;64;0.5;1;0.005;2140929057.0;1.0;1.0;ommited for csv readability;0.5980603448275862;0.5598083031522362;ommited for csv readability;0.5605875152998776;0.5129923568671602;ommited for csv readability;35.0;[ 4  1  4 12  9  1  4]
+
+
+Cora;own;medoids;0.2;64;0.5;1;0.005;1240197975.0;0.0;0.0;[[]];0.13960867265996826;0.13176817964074214;ommited for csv readability;0.13953488372093023;0.13365566616199223;ommited for csv readability;0.0;[]
+Cora;own;medoids;0.2;64;0.5;1;0.005;1240197975.0;1.0;1.0;ommited for csv readability;0.2632696390658174;0.2094740699038016;ommited for csv readability;0.2252141982864137;0.18485557437854;ommited for csv readability;7.0;[0 1 0 1 3 2]
+Cora;own;medoids;0.2;64;0.5;1;0.005;1240197975.0;1.0;1.0;ommited for csv readability;0.4038359083644113;0.33462628511276726;ommited for csv readability;0.36964504283965727;0.3071639969467728;ommited for csv readability;14.0;[0 1 3 4 4 2]
+Cora;own;medoids;0.2;64;0.5;1;0.005;1240197975.0;1.0;1.0;ommited for csv readability;0.4497326203208556;0.3940664837984346;ommited for csv readability;0.38555691554467564;0.3271720583215066;ommited for csv readability;21.0;[0 2 3 6 5 3 2]
+Cora;own;medoids;0.2;64;0.5;1;0.005;1240197975.0;1.0;1.0;ommited for csv readability;0.5034889962426194;0.4745504441744005;ommited for csv readability;0.4479804161566707;0.41220266342638384;ommited for csv readability;28.0;[ 2  2  3 10  5  3  3]
+Cora;own;medoids;0.2;64;0.5;1;0.005;1240197975.0;0.9714285714285714;0.9812987012987013;ommited for csv readability;0.5242456896551724;0.49442157846021934;ommited for csv readability;0.4749082007343941;0.45199903244254613;ommited for csv readability;35.0;[ 2  2  4 12  6  4  5]
+
+
+Cora;own;medoids;0.2;64;0.5;1;0.005;784866329.0;0.0;0.0;[[]];0.15282919090428346;0.14480835362909686;ommited for csv readability;0.12974296205630356;0.11799686690409981;ommited for csv readability;0.0;[]
+Cora;own;medoids;0.2;64;0.5;1;0.005;784866329.0;1.0;1.0;ommited for csv readability;0.38057324840764334;0.2681081461904372;ommited for csv readability;0.3598531211750306;0.2447250358679578;ommited for csv readability;7.0;[1 0 1 4 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;784866329.0;1.0;1.0;ommited for csv readability;0.4619072988811934;0.36703218167414015;ommited for csv readability;0.44063647490820074;0.35823641087687136;ommited for csv readability;14.0;[1 0 2 6 2 2 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;784866329.0;1.0;1.0;ommited for csv readability;0.5026737967914439;0.4000052555434556;ommited for csv readability;0.49326805385556916;0.4086649352275412;ommited for csv readability;21.0;[ 1  0  2 11  3  3  1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;784866329.0;1.0;1.0;ommited for csv readability;0.5254965110037574;0.47396527304237807;ommited for csv readability;0.49571603427172584;0.4403738997984211;ommited for csv readability;28.0;[ 2  0  2 13  3  4  4]
+Cora;own;medoids;0.2;64;0.5;1;0.005;784866329.0;1.0;1.0;ommited for csv readability;0.5727370689655172;0.5087689304460798;ommited for csv readability;0.5471236230110159;0.48172928092342276;ommited for csv readability;35.0;[ 2  0  3 19  3  4  4]
+
+
+Cora;own;medoids;0.2;64;0.5;1;0.005;1866817562.0;0.0;0.0;[[]];0.14331041776837652;0.13420898672078424;ommited for csv readability;0.11995104039167687;0.11650926118536317;ommited for csv readability;0.0;[]
+Cora;own;medoids;0.2;64;0.5;1;0.005;1866817562.0;1.0;1.0;ommited for csv readability;0.33970276008492567;0.3007860436895359;ommited for csv readability;0.3243574051407589;0.2785293837291469;ommited for csv readability;7.0;[1 0 1 2 1 1 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;1866817562.0;1.0;1.0;ommited for csv readability;0.4368673415023974;0.36667878192595965;ommited for csv readability;0.4602203182374541;0.3897164098716061;ommited for csv readability;14.0;[1 0 1 6 4 1 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;1866817562.0;1.0;1.0;ommited for csv readability;0.532620320855615;0.4343892663142991;ommited for csv readability;0.5238678090575275;0.42520660001030997;ommited for csv readability;21.0;[ 2  0  2 10  4  1  2]
+Cora;own;medoids;0.2;64;0.5;1;0.005;1866817562.0;1.0;1.0;ommited for csv readability;0.5587761674718197;0.4816175562374879;ommited for csv readability;0.5507955936352509;0.4560655294114088;ommited for csv readability;28.0;[ 3  1  2 12  6  2  2]
+Cora;own;medoids;0.2;64;0.5;1;0.005;1866817562.0;1.0;1.0;ommited for csv readability;0.5851293103448276;0.5352659938112464;ommited for csv readability;0.5605875152998776;0.5100361363308369;ommited for csv readability;35.0;[ 4  2  2 16  6  2  3]
+
+
+Cora;own;medoids;0.2;64;0.5;1;0.005;503786444.0;0.0;0.0;[[]];0.13220518244315177;0.12561812857993163;ommited for csv readability;0.13219094247246022;0.1232072061121393;ommited for csv readability;0.0;[]
+Cora;own;medoids;0.2;64;0.5;1;0.005;503786444.0;1.0;1.0;ommited for csv readability;0.4676220806794055;0.36024165016632226;ommited for csv readability;0.4186046511627907;0.3193676572312402;ommited for csv readability;7.0;[0 0 1 2 2 1 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;503786444.0;1.0;1.0;ommited for csv readability;0.5759190197123069;0.4929945357773512;ommited for csv readability;0.5189718482252142;0.4361420770346119;ommited for csv readability;14.0;[2 0 1 5 4 1 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;503786444.0;1.0;1.0;ommited for csv readability;0.5983957219251337;0.5160815928011139;ommited for csv readability;0.5483476132190942;0.46171436441871927;ommited for csv readability;21.0;[3 0 1 7 7 2 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;503786444.0;1.0;1.0;ommited for csv readability;0.6135265700483091;0.5233314025215389;ommited for csv readability;0.5679314565483476;0.4722564074548332;ommited for csv readability;28.0;[ 4  0  1 12  8  2  1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;503786444.0;1.0;1.0;ommited for csv readability;0.5969827586206896;0.5152834455192145;ommited for csv readability;0.5373317013463892;0.4548374108116032;ommited for csv readability;35.0;[ 5  0  1 17  8  2  2]
+
+
+Cora;own;medoids;0.2;64;0.5;1;0.005;1256718679.0;0.0;0.0;[[]];0.1427815970386039;0.13271804550184174;ommited for csv readability;0.1481028151774786;0.13979901265931075;ommited for csv readability;0.0;[]
+Cora;own;medoids;0.2;64;0.5;1;0.005;1256718679.0;1.0;1.0;ommited for csv readability;0.3869426751592357;0.35257442158083746;ommited for csv readability;0.3671970624235006;0.3348830972412002;ommited for csv readability;7.0;[2 1 2 0 1 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;1256718679.0;1.0;1.0;ommited for csv readability;0.49493873201917954;0.43791431773632394;ommited for csv readability;0.4773561811505508;0.40578925204915456;ommited for csv readability;14.0;[2 1 2 6 2 1]
+Cora;own;medoids;0.2;64;0.5;1;0.005;1256718679.0;1.0;1.0;ommited for csv readability;0.5155080213903743;0.47269267084970823;ommited for csv readability;0.4810281517747858;0.42407458420074345;ommited for csv readability;21.0;[ 2  1  2 10  2  2  2]
+Cora;own;medoids;0.2;64;0.5;1;0.005;1256718679.0;1.0;1.0;ommited for csv readability;0.5426731078904992;0.4997230865603278;ommited for csv readability;0.5006119951040392;0.4431755824734277;ommited for csv readability;28.0;[ 2  1  2 15  4  2  2]
+Cora;own;medoids;0.2;64;0.5;1;0.005;1256718679.0;1.0;1.0;ommited for csv readability;0.5560344827586207;0.5123531007202714;ommited for csv readability;0.5116279069767442;0.45719776621632396;ommited for csv readability;35.0;[ 2  1  2 18  6  3  3]
+

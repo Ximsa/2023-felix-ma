@@ -218,7 +218,7 @@ def run(model,
             sampled_indices = sampler_fun(n=dataset.num_classes * samples_per_step,
                                           model=model,
                                           dataset=dataset,
-                                          perfect=True,
+                                          perfect=False,
                                           subsampler=subsampler)
             if len(sampled_indices) != dataset.num_classes * samples_per_step:
                 print("Warning: didn't sample |C| vertices: ", len(sampled_indices), "/", dataset.num_classes * samples_per_step)

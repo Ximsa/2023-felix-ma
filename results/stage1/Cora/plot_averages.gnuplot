@@ -21,7 +21,7 @@ do for [FILE in FILES]{
     load '< echo "\$DATA << EOD" & cat '.FILE
     stats $DATA using X_SCALE:MEASURE nooutput
     ROWCOUNT = STATS_records/STATS_blocks
-    LEGEND[i/ROWCOUNT+1] = FILE
+    LEGEND[i/ROWCOUNT+1] = system("echo ".FILE." | sed s/-own//1 | sed s/.csv//g ")
     array LOC_MEAN[ROWCOUNT]
     array LOC_STDDEV[ROWCOUNT]
     do for [j=1:ROWCOUNT] {
@@ -40,6 +40,7 @@ set xlabel X_SCALE
 set ytics
 set ylabel MEASURE
 set key bottom
+set xrange [0:35]
 plot for [i=0:TOTAL_ROWS/ROWCOUNT-1] BUDGET every ::i*ROWCOUNT::i*ROWCOUNT+ROWCOUNT-1 using (BUDGET[$1]):(MEAN[$1]) title LEGEND[i+1] with lines
-pause -1
+#pause -1
 reset

@@ -2,17 +2,17 @@
 set datafile separator ";"
 FILE=ARG1
 load '< echo "\$DATA << EOD" & cat '.FILE
-MEASURE = 'unlabeled accuracy'
+MEASURE = 'Test accuracy'
 if (exists("ARG2")){MEASURE=ARG2}
-X_SCALE = 'budget used'
+X_SCALE = 'Budget used'
 set ylabel MEASURE
 set xlabel X_SCALE
-
+unset xrange # important for stats to work
+unset yrange
 stats $DATA using X_SCALE:MEASURE nooutput
 ROWCOUNT = STATS_records/STATS_blocks
 
-unset xrange # important for stats to work
-unset yrange
+
 
 # fill candlestick plot data
 array BUDGET[ROWCOUNT]
