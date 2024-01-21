@@ -50,11 +50,13 @@ def accuracy(predictions, true_labels, mask):
     if mask.sum() == 0 or len(mask) == 0:
         return {"accuracy": 0,
                 "macro-f1": 0,
-                "confusion": [[]]}
+                "confusion": [[]],
+                "class accuracies": [],}
     else:
         return{"accuracy": accuracy_score(predictions[mask], true_labels[mask]),
                "macro-f1": f1_score(true_labels[mask], predictions[mask], average='macro'),
-               "confusion": "ommited for csv readability"}#confusion_matrix(true_labels[mask], predictions[mask])} # todo: fix
+               "confusion": confusion_matrix(true_labels[mask], predictions[mask]).tolist(),
+               "class accuracies": (confusion_matrix(true_labels[mask], predictions[mask]).diagonal()/confusion_matrix(true_labels[mask], predictions[mask]).sum(axis=1)).tolist()}
 
 def few_shot_training(optimizer, model, dataset, report_only=False):
     """
@@ -233,7 +235,7 @@ def run(model,
             run_stats.append(
                 merge(few_shot_training(optimizer, model, dataset),
                       {"Budget used": int(dataset.train_mask.sum()),
-                       "Class distrubution": torch.bincount(dataset.ground_truth[dataset.train_mask]).cpu().numpy()}))
+                       "Class distrubution": torch.bincount(dataset.ground_truth[dataset.train_mask]).cpu().numpy().tolist()}))
         stop_time = datetime.now()
         print(stop_time - start_time, run_stats[-1]['Unlabeled accuracy'])
         return run_stats
