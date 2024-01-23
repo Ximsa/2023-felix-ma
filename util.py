@@ -9,16 +9,16 @@ from toolz.itertoolz import partition
 from toolz.dicttoolz import keyfilter
 
 
-def plot_embeddings(embeddings, labels):
-    embeddings = embeddings.detach()
-    xs = embeddings[:,0]
-    ys = embeddings[:,1]
+def plot_embeddings(embeddings, labels, name="embeddings.pdf"):
+    embeddings = embeddings.detach().cpu()
     embeddings = TSNE(n_components=2).fit_transform(embeddings)
     xs = embeddings[:,0]
     ys = embeddings[:,1]
     if labels is None:
         labels = torch.tensor([0] * len(xs))
-    plt.scatter(xs, ys, c=labels)
+    plt.scatter(xs, ys, c=labels.detach().cpu())
+    plt.savefig(name)
+    
 
 def plot_clusterer(clusterer, dataset):
     labels = clusterer.predict(dataset.x)

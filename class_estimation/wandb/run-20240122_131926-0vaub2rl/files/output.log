@@ -1,0 +1,38 @@
+
+Config(sampler=None, batch_size=[128, 32, 16], dataset='photo', num_repeats=1, model='pown', log_all=False, n_epoch=300, patience=20, hidden_channels=512, num_layers=2, dropout=0.5, lr=0.01, weight_decay=0.0, unknown_class_ratio=0.2, lp_hop=2, lp_min_seeds=3, entropy_threshold=0.1, geometric_loss_weight=0.1, num_protos=8, gpu_number=0, fold_type='disjunct', filename=['n_class_estimation_photo'], n_folds=5, max_cand_k=10, split_ratio=0.2, num_val_cls=6, min_max_ratio=0.05)
+Traceback (most recent call last):
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 44, in <module>
+    main(ARGS)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 25, in main
+    result_dict = run_setting(config, num_repeats = config.num_repeats, log_all=config.log_all)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 30, in run_setting
+    datasets = load_folds(config.dataset, unknown_class_ratio=config.unknown_class_ratio)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/open_dataset.py", line 416, in load_folds
+    datasets = create_fold_data(data, name, unknown_class_ratio)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/open_dataset.py", line 184, in create_fold_data
+    torch.save(folds, path)
+  File "/home/felix/.local/lib/python3.10/site-packages/torch/serialization.py", line 440, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+  File "/home/felix/.local/lib/python3.10/site-packages/torch/serialization.py", line 315, in _open_zipfile_writer
+    return container(name_or_buffer)
+  File "/home/felix/.local/lib/python3.10/site-packages/torch/serialization.py", line 288, in __init__
+    super().__init__(torch._C.PyTorchFileWriter(str(name)))
+RuntimeError: Parent directory fold_indices does not exist.
+Traceback (most recent call last):
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 44, in <module>
+    main(ARGS)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 25, in main
+    result_dict = run_setting(config, num_repeats = config.num_repeats, log_all=config.log_all)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 30, in run_setting
+    datasets = load_folds(config.dataset, unknown_class_ratio=config.unknown_class_ratio)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/open_dataset.py", line 416, in load_folds
+    datasets = create_fold_data(data, name, unknown_class_ratio)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/open_dataset.py", line 184, in create_fold_data
+    torch.save(folds, path)
+  File "/home/felix/.local/lib/python3.10/site-packages/torch/serialization.py", line 440, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+  File "/home/felix/.local/lib/python3.10/site-packages/torch/serialization.py", line 315, in _open_zipfile_writer
+    return container(name_or_buffer)
+  File "/home/felix/.local/lib/python3.10/site-packages/torch/serialization.py", line 288, in __init__
+    super().__init__(torch._C.PyTorchFileWriter(str(name)))
+RuntimeError: Parent directory fold_indices does not exist.

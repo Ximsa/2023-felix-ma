@@ -23,6 +23,12 @@ datasets = {"Cora": Planetoid,
             "Reddit2": lambda name, **kwargs: Reddit2(**kwargs),
             "ogbn-arxiv": PygNodePropPredDataset}
 
+n_class_estimations = {"Cora": 11,
+                       "CiteSeer": 13,
+                       "PubMed": 7,
+                       "Reddit2": 50, # todo
+                       "ogbn-arxiv": 50} # todo
+
 def create_split(data, train_portion=0.0, val_portion=0.7, seed=None):
     """Splits the dataset into train, validation, and test
 
@@ -57,7 +63,7 @@ def create_split(data, train_portion=0.0, val_portion=0.7, seed=None):
     test_mask[test_ix] = True
     return train_mask, val_mask, test_mask
 
-def get_dataset(dataset_name):
+def get_dataset(dataset_name,calc_pagerank=True):
     """Returns the dataset of given name
 
     :param dataset_name: Case sensitive name of dataset
@@ -74,9 +80,10 @@ def get_dataset(dataset_name):
     dataset.val_mask = dataset.val_mask.to(device)
     dataset.test_mask = dataset.test_mask.to(device)
     dataset.propagated_mask = torch.full_like(dataset.y, False, dtype=torch.bool).to(device)
-    dataset.num_classes = len(dataset.y.unique())
-    network = to_networkx(dataset)
-    dataset.pagerank = torch.tensor(list(pagerank(network).values())).to(device)
+    dataset.num_classes = n_class_estimations[dataset_name]#len(dataset.y.unique())
+    if calc_pagerank:
+        network = to_networkx(dataset)
+        dataset.pagerank = torch.tensor(list(pagerank(network).values())).to(device)
     dataset.ground_truth = torch.clone(dataset.y)
     return dataset
 

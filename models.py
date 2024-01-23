@@ -146,7 +146,7 @@ class LP(torch_geometric.nn.models.LabelPropagation):
                  distance_loss_weight = 1.0): # unused
         super().__init__(num_layers=5, alpha=0.9) # hardcoded lp hyperparams
         # add fake tunable parameter
-        self.fakeparam = torch.nn.Parameter(torch.tensor([0.], 
+        self.fakeparam = torch.nn.Parameter(torch.tensor([0.],
                                                          requires_grad=True, dtype=torch.float32).to(device))
         
     def forward(self, x, edge_index, y, mask):

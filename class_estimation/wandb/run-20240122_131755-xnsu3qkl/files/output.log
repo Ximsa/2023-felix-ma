@@ -1,0 +1,41 @@
+
+Config(sampler=None, batch_size=[128, 32, 16], dataset='photo', num_repeats=1, model='pown', log_all=False, n_epoch=300, patience=20, hidden_channels=512, num_layers=2, dropout=0.5, lr=0.01, weight_decay=0.0, unknown_class_ratio=0.2, lp_hop=2, lp_min_seeds=3, entropy_threshold=0.1, geometric_loss_weight=0.1, num_protos=8, gpu_number=0, fold_type='disjunct', filename=['n_class_estimation_photo'], n_folds=5, max_cand_k=10, split_ratio=0.2, num_val_cls=6, min_max_ratio=0.05)
+Downloading https://github.com/shchur/gnn-benchmark/raw/master/data/npz/amazon_electronics_photo.npz
+Processing...
+Done!
+Traceback (most recent call last):
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 44, in <module>
+    main(ARGS)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 25, in main
+    result_dict = run_setting(config, num_repeats = config.num_repeats, log_all=config.log_all)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 30, in run_setting
+    datasets = load_folds(config.dataset, unknown_class_ratio=config.unknown_class_ratio)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/open_dataset.py", line 398, in load_folds
+    data = load_amazon_datasets(name, train_portion=0.6, val_portion=0.2, test_portion=0.2, seed=0)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/open_dataset.py", line 55, in load_amazon_datasets
+    splits = torch.load("dataset/"+name+"/own_23_splits.pt")
+  File "/home/felix/.local/lib/python3.10/site-packages/torch/serialization.py", line 791, in load
+    with _open_file_like(f, 'rb') as opened_file:
+  File "/home/felix/.local/lib/python3.10/site-packages/torch/serialization.py", line 271, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+  File "/home/felix/.local/lib/python3.10/site-packages/torch/serialization.py", line 252, in __init__
+    super().__init__(open(name, mode))
+FileNotFoundError: [Errno 2] No such file or directory: 'dataset/photo/own_23_splits.pt'
+Traceback (most recent call last):
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 44, in <module>
+    main(ARGS)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 25, in main
+    result_dict = run_setting(config, num_repeats = config.num_repeats, log_all=config.log_all)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 30, in run_setting
+    datasets = load_folds(config.dataset, unknown_class_ratio=config.unknown_class_ratio)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/open_dataset.py", line 398, in load_folds
+    data = load_amazon_datasets(name, train_portion=0.6, val_portion=0.2, test_portion=0.2, seed=0)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/open_dataset.py", line 55, in load_amazon_datasets
+    splits = torch.load("dataset/"+name+"/own_23_splits.pt")
+  File "/home/felix/.local/lib/python3.10/site-packages/torch/serialization.py", line 791, in load
+    with _open_file_like(f, 'rb') as opened_file:
+  File "/home/felix/.local/lib/python3.10/site-packages/torch/serialization.py", line 271, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+  File "/home/felix/.local/lib/python3.10/site-packages/torch/serialization.py", line 252, in __init__
+    super().__init__(open(name, mode))
+FileNotFoundError: [Errno 2] No such file or directory: 'dataset/photo/own_23_splits.pt'

@@ -56,7 +56,7 @@ def accuracy(predictions, true_labels, mask):
         return{"accuracy": accuracy_score(predictions[mask], true_labels[mask]),
                "macro-f1": f1_score(true_labels[mask], predictions[mask], average='macro'),
                "confusion": confusion_matrix(true_labels[mask], predictions[mask]).tolist(),
-               "class accuracies": (confusion_matrix(true_labels[mask], predictions[mask]).diagonal()/confusion_matrix(true_labels[mask], predictions[mask]).sum(axis=1)).tolist()}
+               "class accuracies": (confusion_matrix(true_labels[mask], predictions[mask]).diagonal()/confusion_matrix(true_labels[mask], predictions[mask]).sum(axis=0)).tolist()}
 
 def few_shot_training(optimizer, model, dataset, report_only=False):
     """
@@ -236,6 +236,12 @@ def run(model,
                 merge(few_shot_training(optimizer, model, dataset),
                       {"Budget used": int(dataset.train_mask.sum()),
                        "Class distrubution": torch.bincount(dataset.ground_truth[dataset.train_mask]).cpu().numpy().tolist()}))
+            # plot embeddings
+            # embeddings = model.get_embeddings(dataset.x, dataset.edge_index)
+            # prototypes = model.prototypes
+            # plot_embeddings(torch.cat([embeddings,prototypes]).detach(),
+                            #labels=torch.cat([dataset.ground_truth, torch.full([dataset.num_classes], -1, device=device)]))
+            
         stop_time = datetime.now()
         print(stop_time - start_time, run_stats[-1]['Unlabeled accuracy'])
         return run_stats

@@ -1,0 +1,533 @@
+
+Config(sampler=None, batch_size=[128, 32, 16], dataset='photo', num_repeats=1, model='pown', log_all=False, n_epoch=300, patience=20, hidden_channels=512, num_layers=2, dropout=0.5, lr=0.01, weight_decay=0.0, unknown_class_ratio=0.2, lp_hop=2, lp_min_seeds=3, entropy_threshold=0.1, geometric_loss_weight=0.1, num_protos=8, gpu_number=0, fold_type='disjunct', filename=['n_class_estimation_photo'], n_folds=5, max_cand_k=10, split_ratio=0.2, num_val_cls=6, min_max_ratio=0.05)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+100%|█████████████████████████████████████████████████████████████████████████▊| 299/300 [06:43<00:01,  1.34s/it]
+Unlabled node classes:  tensor([0, 1, 2, 3, 4, 7])
+Labled node classes:  tensor([0, 1, 2, 5, 6, 7])
+
+100%|██████████████████████████████████████████████████████████████████████████| 300/300 [06:45<00:00,  1.35s/it]
+extracting features for labeld data
+Lt:  {5}
+Lv:  {0, 1, 2, 6, 7}
+estimating K ...
+  0%|                                                                                     | 0/10 [00:00<?, ?it/s]
+Tested k:  6
+
+ 10%|███████▋                                                                     | 1/10 [00:19<02:52, 19.21s/it]
+Tested k:  7
+
+ 20%|███████████████▍                                                             | 2/10 [00:36<02:24, 18.07s/it]
+Tested k:  8
+
+ 30%|███████████████████████                                                      | 3/10 [00:57<02:16, 19.49s/it]
+Tested k:  9
+
+ 40%|██████████████████████████████▊                                              | 4/10 [01:26<02:19, 23.27s/it]
+Tested k:  10
+
+ 50%|██████████████████████████████████████▌                                      | 5/10 [01:58<02:11, 26.36s/it]
+Tested k:  11
+
+ 60%|██████████████████████████████████████████████▏                              | 6/10 [02:38<02:04, 31.06s/it]
+Tested k:  12
+
+ 70%|█████████████████████████████████████████████████████▉                       | 7/10 [03:21<01:44, 34.75s/it]
+Tested k:  13
+
+ 80%|█████████████████████████████████████████████████████████████▌               | 8/10 [04:02<01:13, 36.99s/it]
+Tested k:  14
+
+ 90%|█████████████████████████████████████████████████████████████████████▎       | 9/10 [04:51<00:40, 40.61s/it]
+Tested k:  15
+100%|████████████████████████████████████████████████████████████████████████████| 10/10 [05:43<00:00, 34.32s/it]
+/home/felix/.local/lib/python3.10/site-packages/sklearn/cluster/_kmeans.py:1412: FutureWarning: The default value of `n_init` will change from 10 to 'auto' in 1.4. Set the value of `n_init` explicitly to suppress the warning
+  super()._check_params_vs_input(X, default_n_init=10)
+Final K 6, acc 0.2520, nmi 0.0682, ari 0.0088
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+100%|██████████████████████████████████████████████████████████████████████████| 300/300 [09:51<00:00,  1.97s/it]
+Unlabled node classes:  tensor([0, 1, 2, 5, 6, 7])
+Labled node classes:  tensor([2, 3, 4, 5, 6, 7])
+extracting features for unlabeld data
+extracting features for labeld data
+Lt:  {5}
+Lv:  {2, 3, 4, 6, 7}
+estimating K ...
+  0%|                                                                                     | 0/10 [00:00<?, ?it/s]
+Tested k:  6
+
+ 10%|███████▌                                                                    | 1/10 [05:59<53:55, 359.45s/it]
+Traceback (most recent call last):
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 44, in <module>
+    main(ARGS)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 25, in main
+    result_dict = run_setting(config, num_repeats = config.num_repeats, log_all=config.log_all)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 34, in run_setting
+    n_classes = estimate_number_of_classes(data, device, config)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/models/n_class_estimator.py", line 129, in estimate_number_of_classes
+    k_best = n_class_estimator(data, dgi, config.max_cand_k, config.split_ratio, config.num_val_cls, config.min_max_ratio, device)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/models/n_class_estimator.py", line 69, in n_class_estimator
+    cvi_list[i],  cat_pred_i = labeled_val_fun(np.concatenate((lv_feats, u_feats)), lt_feats, lt_targets, cand_k[i]+num_val_cls, device)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/utils.py", line 127, in labeled_val_fun
+    kmeans.fit_mix(torch.from_numpy(u_feats).to(device), torch.from_numpy(l_feats).to(device), torch.from_numpy(l_targets).to(device))
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/models/kmeans.py", line 155, in fit_mix
+    labels, inertia, centers, n_iters = self.fit_mix_once(u_feats, l_feats, l_targets, random_state)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/models/kmeans.py", line 102, in fit_mix_once
+    dist = pairwise_distance(u_feats, centers, self.pairwise_batch_size)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/models/kmeans.py", line 200, in pairwise_distance
+    dis[i:i+batch_size] = dis_batch
+RuntimeError: CUDA error: unspecified launch failure
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+Traceback (most recent call last):
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 44, in <module>
+    main(ARGS)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 25, in main
+    result_dict = run_setting(config, num_repeats = config.num_repeats, log_all=config.log_all)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/class_estimation_main.py", line 34, in run_setting
+    n_classes = estimate_number_of_classes(data, device, config)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/models/n_class_estimator.py", line 129, in estimate_number_of_classes
+    k_best = n_class_estimator(data, dgi, config.max_cand_k, config.split_ratio, config.num_val_cls, config.min_max_ratio, device)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/models/n_class_estimator.py", line 69, in n_class_estimator
+    cvi_list[i],  cat_pred_i = labeled_val_fun(np.concatenate((lv_feats, u_feats)), lt_feats, lt_targets, cand_k[i]+num_val_cls, device)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/utils.py", line 127, in labeled_val_fun
+    kmeans.fit_mix(torch.from_numpy(u_feats).to(device), torch.from_numpy(l_feats).to(device), torch.from_numpy(l_targets).to(device))
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/models/kmeans.py", line 155, in fit_mix
+    labels, inertia, centers, n_iters = self.fit_mix_once(u_feats, l_feats, l_targets, random_state)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/models/kmeans.py", line 102, in fit_mix_once
+    dist = pairwise_distance(u_feats, centers, self.pairwise_batch_size)
+  File "/home/felix/Documents/git/2023-felix-ma/class_estimation/models/kmeans.py", line 200, in pairwise_distance
+    dis[i:i+batch_size] = dis_batch
+RuntimeError: CUDA error: unspecified launch failure
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
