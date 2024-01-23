@@ -1,7 +1,7 @@
 {"model_names" ["GCN"]
  "dataset_names" ["ogbn-arxiv"]
  "samplers" ["own"]
- "num_steps" 20 ;; number of sampler runs
+ "num_steps" 5 ;; number of sampler runs
  "samples_per_step" 10 ;; in multiples of #classes
  "seed" 3133742069
  "repeats" 4
