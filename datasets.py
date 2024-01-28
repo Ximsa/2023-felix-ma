@@ -63,7 +63,11 @@ def create_split(data, train_portion=0.0, val_portion=0.7, seed=None):
     test_mask[test_ix] = True
     return train_mask, val_mask, test_mask
 
+<<<<<<< HEAD
+def get_dataset(dataset_name, corruption=0, seed=None):
+=======
 def get_dataset(dataset_name,calc_pagerank=True):
+>>>>>>> 1c68e4d9991a39c75bd4a9d36223843ed80d05dd
     """Returns the dataset of given name
 
     :param dataset_name: Case sensitive name of dataset
@@ -75,7 +79,7 @@ def get_dataset(dataset_name,calc_pagerank=True):
     dataset.edge_index = to_undirected(dataset.edge_index.to(device))
     dataset.x = dataset.x.to(device)
     dataset.y = torch.flatten(dataset.y).to(device)
-    dataset.train_mask, dataset.val_mask, dataset.test_mask = create_split(dataset)
+    dataset.train_mask, dataset.val_mask, dataset.test_mask = create_split(dataset,seed=seed)
     dataset.train_mask = dataset.train_mask.to(device)
     dataset.val_mask = dataset.val_mask.to(device)
     dataset.test_mask = dataset.test_mask.to(device)
@@ -85,6 +89,14 @@ def get_dataset(dataset_name,calc_pagerank=True):
         network = to_networkx(dataset)
         dataset.pagerank = torch.tensor(list(pagerank(network).values())).to(device)
     dataset.ground_truth = torch.clone(dataset.y)
+    dataset.foo = torch.clone(dataset.y)
+    if corruption > 0:
+        corrupted_indices = torch.multinomial(
+            (dataset.train_mask | dataset.val_mask).float(),
+            int(corruption * (dataset.train_mask | dataset.val_mask).sum()))
+        dataset.ground_truth[corrupted_indices] = (
+            dataset.ground_truth[corrupted_indices] +
+            torch.randint(low=1,high=dataset.num_classes,size=corrupted_indices.shape, device=device)) % dataset.num_classes
     return dataset
 
 def get_homophily(dataset):

@@ -174,7 +174,7 @@ def label_propagation(model, dataset, steps=2, uncertainty_threshold=0.2):
     #print("Propagated", dataset.propagated_mask.sum(), "labels\twrong samples:", (dataset.y != dataset.ground_truth).sum(), "\t", uncertainty_threshold)
 
 def run(model,
-        dataset,
+        dataset_name,
         sampler='own',
         runs=10,
         label_propagation_uncertainty_treshold=0.2,
@@ -182,18 +182,21 @@ def run(model,
         samples_per_step=1,
         seed=133742069,
         learning_rate=0.001,
-        subsampler = "random"):
+        subsampler = "random",
+        corruption = 0):
     """
     Runs experiments on given model "runs" times with the same settings
 
     :param model: Model constructor with 0 args for model construction
-    :param dataset: Data for training, testing, and validation
+    :param dataset_name: Dataset name for training, testing, and validation
     :param sampler: Sampler used for the active learner
     :param runs: Number of experiment repeats
     :param budget: Number of samples moving from unlabeled to labeled
     :param seed: Initial seed for each strategy. Seed will change each run
     :param train_epochs: Number of epochs to train between samling
     :param learning_rate: Learning rate of the optimizer
+    :param subsamler: Subsamling strategy
+    :param corruption: Relative amount of wrong labeled instances
     :returns: run statistics
     """
     def run_once(model, dataset):
@@ -253,7 +256,8 @@ def run(model,
         torch.manual_seed(seeds[i]) # update seeds
         np.random.seed(seeds[i])
         random.seed(seeds[i])
-        dataset.train_mask, dataset.val_mask, dataset.test_mask = datasets.create_split(dataset, seed=seed) # update splits with given seed
+        # reset dataset
+        dataset = datasets.get_dataset(dataset_name, seed=seeds[i], corruption=corruption)
         model_instance = model()
         model_instance = model_instance.to(device)
         result = run_once(model_instance, copy.deepcopy(dataset))
