@@ -130,27 +130,6 @@ def few_shot_training(optimizer, model, dataset, report_only=False):
                  keymap(lambda key: "Unlabeled " + key, accuracy(labels, dataset.y, dataset.val_mask)),
                  keymap(lambda key: "Test " + key, accuracy(labels, dataset.y, dataset.test_mask)))
 
-def model_soup_trainig(optimizer, model, dataset, hyperparams):
-    """
-    Perfroms training on each given hyperparameter and creates a greedy model soup
-
-    :param optimizer: base optimizer
-    :param model: model to train, altered via side-effects
-    :param dataset: dataset:
-    :param hyperparams: dict containing 'learning rates', 'dropouts', and 'distance_loss_weights' to be tuned
-    :return: run stats
-    """
-    learning_rates = hyperparams['learning_rates']
-    dropouts = hyperparams['dropouts']
-    distance_loss_weights = hyperparams['distance_loss_weights']
-    original_model_state = model.state_dict()
-    original_optimizer_state = optimizer.state_dict()
-    stats = []
-    for learning_rate, dropout, distance_loss_weight in itertools.product(learning_rates, dropouts, distance_loss_weights):
-        
-        stats.append(few_shot_training(optimizer, model, dataset, report_only=False)['accuracy'])
-    pass
-
 def label_propagation(model, dataset, steps=2, uncertainty_threshold=0.2):
     """
     Propagates trainig labels and adds their labels to y, modifies dataset
@@ -217,17 +196,16 @@ def run(model,
         run_stats = [merge(few_shot_training(optimizer, model, dataset, report_only=True),
                            {"Budget used": 0,
                             "Class distrubution": []})]
-        budget = num_steps
-        while(budget > 0):
+        budget = num_steps * samples_per_step * dataset.orig_num_classes
+        while(dataset.train_mask.sum() < budget):
             # ask active learner for vertices
-            sampled_indices = sampler_fun(n=dataset.num_classes * samples_per_step,
+            sampled_indices = sampler_fun(n=min(dataset.num_classes * samples_per_step, budget - dataset.train_mask.sum()),
                                           model=model,
                                           dataset=dataset,
                                           perfect=False,
                                           subsampler=subsampler)
             if len(sampled_indices) != dataset.num_classes * samples_per_step:
                 print("Warning: didn't sample |C| vertices: ", len(sampled_indices), "/", dataset.num_classes * samples_per_step)
-            budget -= 1
             # move sampled vertices from the validation to the training set, also restore propagated indices if applicable
             dataset.val_mask[sampled_indices] = False
             dataset.train_mask[sampled_indices] = True

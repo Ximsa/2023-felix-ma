@@ -63,11 +63,7 @@ def create_split(data, train_portion=0.0, val_portion=0.7, seed=None):
     test_mask[test_ix] = True
     return train_mask, val_mask, test_mask
 
-<<<<<<< HEAD
-def get_dataset(dataset_name, corruption=0, seed=None):
-=======
-def get_dataset(dataset_name,calc_pagerank=True):
->>>>>>> 1c68e4d9991a39c75bd4a9d36223843ed80d05dd
+def get_dataset(dataset_name, corruption=0, seed=None, calc_pagerank=True):
     """Returns the dataset of given name
 
     :param dataset_name: Case sensitive name of dataset
@@ -84,12 +80,12 @@ def get_dataset(dataset_name,calc_pagerank=True):
     dataset.val_mask = dataset.val_mask.to(device)
     dataset.test_mask = dataset.test_mask.to(device)
     dataset.propagated_mask = torch.full_like(dataset.y, False, dtype=torch.bool).to(device)
-    dataset.num_classes = n_class_estimations[dataset_name]#len(dataset.y.unique())
+    dataset.orig_num_classes = len(dataset.y.unique())
+    dataset.num_classes = n_class_estimations[dataset_name]
     if calc_pagerank:
         network = to_networkx(dataset)
         dataset.pagerank = torch.tensor(list(pagerank(network).values())).to(device)
     dataset.ground_truth = torch.clone(dataset.y)
-    dataset.foo = torch.clone(dataset.y)
     if corruption > 0:
         corrupted_indices = torch.multinomial(
             (dataset.train_mask | dataset.val_mask).float(),

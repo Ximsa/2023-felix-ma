@@ -109,11 +109,13 @@ def own_sampling(n, model, dataset, perfect=False, subsampler="random"):
     grouped_indices = dissoc(grouped_indices, -1) # remove train and test
     ranks = dataset.pagerank.cpu()
     for label, indices in grouped_indices.items():
-        selected_indices = sub_sampler(num_samples=int(min(samples_per_class[label], len(indices))),
-                                       indices=indices,
-                                       embeddings=model(dataset.x, dataset.edge_index, dataset.y, dataset.train_mask).detach(),
-                                       ranks=ranks,
-                                       subsampler=subsampler)
+        selected_indices = np.array([],dtype=int)
+        if samples_per_class[label] > 0:
+            selected_indices = sub_sampler(num_samples=int(min(samples_per_class[label], len(indices))),
+                                           indices=indices,
+                                           embeddings=model(dataset.x, dataset.edge_index, dataset.y, dataset.train_mask).detach(),
+                                           ranks=ranks,
+                                           subsampler=subsampler)
         sampled_indices = torch.cat([sampled_indices,
                                      torch.from_numpy(selected_indices)])
     return sampled_indices

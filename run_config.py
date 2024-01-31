@@ -24,15 +24,15 @@ def run_config(model_names, dataset_names, samplers, num_steps, samples_per_step
     Runs experiments as described in given run config
     :returns: dataframe with run statistics
     """
-    def run_one_experiment(model_constructor, dataset, dataset_name, sampler_name, hyperparams):
+    def run_one_experiment(model_constructor, dataset_name, sampler_name, hyperparams):
         model = partial(model_constructor,
-                        dataset,
+                        datasets.get_dataset(dataset_name),
                         **select_keys(hyperparams,
                                       (['hidden_dim_size',
                                         'dropout',
                                         'distance_loss_weight'])))
         run_results = train.run(model=model,
-                                dataset=dataset,
+                                dataset_name=dataset_name,
                                 sampler=sampler_name,
                                 runs=repeats,
                                 label_propagation_uncertainty_treshold=hyperparams['label_propagation_uncertainty_treshold'],
@@ -51,13 +51,11 @@ def run_config(model_names, dataset_names, samplers, num_steps, samples_per_step
     # perform jobs
     for model_name, dataset_name, sampler_name in itertools.product(model_names, dataset_names, samplers):
         print(model_name, dataset_name, sampler_name)
-        dataset = datasets.get_dataset(dataset_name)
         model_constructor = models.models[model_name]
         keys, values = zip(*hyperparameters.items())
         for bundle in itertools.product(*values):
             config = dict(zip(keys, bundle))
             result = run_one_experiment(model_constructor,
-                                        dataset,
                                         dataset_name,
                                         sampler_name,
                                         config)
