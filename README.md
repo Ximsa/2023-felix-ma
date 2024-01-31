@@ -1,6 +1,7 @@
 # 2023-Felix-MA
 
 ## Requirements
+We used Python 3.9 for this project.
 
 Python requirements are listed in [requirements.txt](https://gitlab.informatik.uni-ulm.de/dbis/data-science-and-big-data-analytics/teaching/2023-felix-ma/-/blob/main/requirements.txt?ref_type=heads)
 
@@ -41,7 +42,8 @@ Run configurations use the [edn](https://github.com/edn-format/edn) file format.
   "hidden_dim_size" [64 128] ;; hiden dimension sizes to try
   "dropout" [0.25 0.5 0.75] ;; model dropout
   "distance_loss_weight" [0.5 1 2] ;; GPN only: balance between loss and regularisation term
-  "learning_rate" [0.005 0.001]}} ;; learning rates to try
+  "learning_rate" [0.005 0.001] ;; learning rates to try
+  "corruption" [0 0.1]}} ;; relative amount of wrong labeled vertices in labeled and unlabeled set.
 
 ```
 To run a config, simply type
