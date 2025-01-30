@@ -1,4 +1,4 @@
-# 2023-Felix-MA
+# Active Few-Shot Learning for Vertex Classification Starting from an Unlabeled Dataset
 
 ## Requirements
 We used Python 3.9 for this project.
